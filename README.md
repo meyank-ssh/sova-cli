@@ -1,195 +1,73 @@
 # 🚀 Sova CLI
 
-A powerful and modern CLI tool for scaffolding projects with best practices and optimal structure. Sova CLI helps you jumpstart your development by generating production-ready project templates.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue)](https://golang.org/dl/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Go Report Card](https://goreportcard.com/badge/github.com/meyanksingh/go-sova)](https://goreportcard.com/report/github.com/meyanksingh/go-sova)
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue)
+A modern CLI tool for scaffolding Go projects with best practices. Generate production-ready project templates in seconds.
 
-## ✨ Features
+## 🚀 Quick Install
 
-- 🏗️ Multiple project templates (Go Web, CLI, Library)
-- 📁 Standardized project structure
-- 🔧 Customizable templates
-- 🚦 Built-in testing setup
-- 📚 Automatic documentation generation
-- 🛠️ Development tools integration
-
-## 🔧 Installation
-
-### Using Go Install
-
+**Linux/macOS**:
 ```bash
-go install github.com/meyank/sova-cli@latest
+curl -fsSL https://raw.githubusercontent.com/meyanksingh/go-sova/master/scripts/install.sh | bash
 ```
 
-### From Source
-
-```bash
-git clone https://github.com/meyank/sova-cli.git
-cd sova-cli
-go build
+**Windows** (PowerShell Admin):
+```powershell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/meyanksingh/go-sova/master/scripts/install.sh" -OutFile "install.sh"; bash install.sh
 ```
 
-## 🚀 Quick Start
+**Using Go**:
+```bash
+go install github.com/meyanksingh/go-sova@latest
+```
 
-1. Create a new project:
-   ```bash
-   sova init my-awesome-project
-   ```
+**Manual Installation**:
+Download the latest release from [GitHub Releases](https://github.com/meyanksingh/go-sova/releases/latest)
 
-2. Choose a template:
-   ```bash
-   sova init my-web-app --template go-web
-   ```
+## 💡 Usage
 
-3. Generate components:
-   ```bash
-   sova generate controller User
-   ```
-
-## 📖 Available Commands
-
-### Project Initialization
+Create a new project:
 ```bash
 # Basic project
-sova init project-name
+sova init my-project
 
 # Web project
-sova init project-name --template go-web
+sova init my-web --template web
 
 # CLI project
-sova init project-name --template cli
-
-# Library project
-sova init project-name --template library
-
-# Force overwrite existing directory
-sova init project-name --force
+sova init my-cli --template cli
 ```
 
-### Component Generation
-```bash
-# Generate a new controller
-sova generate controller UserController
+## 📦 Features
 
-# Generate a model
-sova generate model User
-
-# Generate an API endpoint
-sova generate api UserAPI
-```
-
-### Other Commands
-```bash
-# Show version
-sova version
-
-# Show verbose version info
-sova version --verbose
-
-# Show help
-sova help
-```
-
-## 📁 Project Templates
-
-### Default Template
-```
-📦 project/
-├── cmd/           # Command-line interfaces
-├── internal/      # Private application code
-├── pkg/          # Public libraries
-├── api/          # API definitions
-├── docs/         # Documentation
-├── scripts/      # Build and maintenance scripts
-└── test/         # Additional test files
-```
-
-### Web Template
-```
-📦 project/
-├── cmd/          # Entry points
-├── internal/     # Private application code
-│   ├── handlers/ # HTTP handlers
-│   ├── models/   # Data models
-│   └── db/       # Database interactions
-├── pkg/          # Public libraries
-├── web/         # Web-specific code
-│   ├── templates/# HTML templates
-│   ├── static/   # Static assets
-│   └── routes/   # Route definitions
-└── docs/         # Documentation
-```
-
-### CLI Template
-```
-📦 project/
-├── cmd/          # CLI commands
-│   ├── root/     # Root command
-│   └── commands/ # Subcommands
-├── internal/     # Private application code
-├── pkg/          # Public libraries
-└── docs/         # Documentation
-```
-
-## 🛠️ Development
-
-### Prerequisites
-- Go 1.21 or higher
-- Git
-
-### Building from Source
-```bash
-# Clone the repository
-git clone https://github.com/meyank/sova-cli.git
-
-# Change to project directory
-cd sova-cli
-
-# Install dependencies
-go mod download
-
-# Build the project
-go build
-
-# Run tests
-go test ./...
-```
-
-### Adding Custom Templates
-
-1. Create a new template in `templates/` directory
-2. Register the template in `internal/project/structure.go`
-3. Add template-specific logic in `internal/templates/`
+- Multiple project templates (Web, CLI, Library)
+- Standardized project structure
+- Customizable templates
+- Interactive prompts
+- Cross-platform support
 
 ## 📚 Documentation
 
-- [API Documentation](docs/API.md)
-- [Template Guide](docs/TEMPLATES.md)
-- [Contributing Guide](CONTRIBUTING.md)
+- [Getting Started](https://github.com/meyanksingh/go-sova/wiki/getting-started)
+- [Templates](https://github.com/meyanksingh/go-sova/wiki/templates)
+- [Configuration](https://github.com/meyanksingh/go-sova/wiki/configuration)
+- [Contributing](CONTRIBUTING.md)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We love your input! Check out our [Contributing Guide](CONTRIBUTING.md) for ways to get started. Every contribution counts:
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/amazing`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing`)
+5. Open a Pull Request
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Copyright © 2024 [Sova CLI Contributors](https://github.com/meyanksingh/go-sova/graphs/contributors)
 
-## 🙏 Acknowledgments
-
-- [Cobra](https://github.com/spf13/cobra) - CLI framework
-- [Viper](https://github.com/spf13/viper) - Configuration management
-- The Go community for inspiration and support
-
-## 📞 Support
-
-- Create an issue for bug reports
-- Start a discussion for feature requests
-- Check our [FAQ](docs/FAQ.md) for common questions 
+This project is [MIT](LICENSE) licensed. By contributing, you agree that your contributions will be licensed under its MIT License. 
