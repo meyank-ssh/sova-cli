@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -38,9 +40,11 @@ Example:
 			PrintError("Failed to get current directory: %v", err)
 			os.Exit(1)
 		}
+		fmt.Printf("Current working directory: %s\n", cwd)
 
 		// Create the project directory path
 		projectDir := filepath.Join(cwd, projectName)
+		fmt.Printf("Project directory will be: %s\n", projectDir)
 
 		// Check if the directory already exists
 		if _, err := os.Stat(projectDir); !os.IsNotExist(err) {
@@ -49,13 +53,111 @@ Example:
 				os.Exit(1)
 			}
 			PrintWarning("Overwriting existing directory: %s", projectName)
+			if err := os.RemoveAll(projectDir); err != nil {
+				PrintError("Failed to remove existing directory: %v", err)
+				os.Exit(1)
+			}
 		}
 
 		PrintInfo("Initializing new project: %s", projectName)
 		PrintInfo("Using template: %s", initTemplate)
 
-		// TODO: Implement project initialization logic
-		// This would call functions from the internal/project package
+		// Create project directory
+		if err := os.MkdirAll(projectDir, 0755); err != nil {
+			PrintError("Failed to create project directory: %v", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Created project directory: %s\n", projectDir)
+
+		// Create basic project structure
+		dirs := []string{
+			"cmd",
+			"internal",
+			"pkg",
+			"api",
+			"docs",
+			"scripts",
+			"test",
+		}
+
+		for _, dir := range dirs {
+			dirPath := filepath.Join(projectDir, dir)
+			err := os.MkdirAll(dirPath, 0755)
+			if err != nil {
+				PrintError("Failed to create directory %s: %v", dir, err)
+				os.Exit(1)
+			}
+			fmt.Printf("Created directory: %s\n", dirPath)
+		}
+
+		// Create basic files
+		files := map[string]string{
+			"main.go": `package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello from ` + projectName + `!")
+}
+`,
+			"go.mod": `module ` + projectName + `
+
+go 1.21
+`,
+			"README.md": `# ` + projectName + `
+
+This project was generated using Sova CLI.
+
+## Getting Started
+
+1. Run the project:
+   ` + "```" + `bash
+   go run main.go
+   ` + "```" + `
+
+## Project Structure
+
+- cmd/: Command line interfaces
+- internal/: Private application code
+- pkg/: Public libraries
+- api/: API definitions
+- docs/: Documentation
+- scripts/: Build and maintenance scripts
+- test/: Additional test files
+`,
+		}
+
+		for filename, content := range files {
+			filePath := filepath.Join(projectDir, filename)
+			err := ioutil.WriteFile(filePath, []byte(content), 0644)
+			if err != nil {
+				PrintError("Failed to create file %s: %v", filename, err)
+				os.Exit(1)
+			}
+			fmt.Printf("Created file: %s\n", filePath)
+		}
+
+		// Verify the project structure
+		if err := filepath.Walk(projectDir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			rel, err := filepath.Rel(projectDir, path)
+			if err != nil {
+				return err
+			}
+			if rel == "." {
+				return nil
+			}
+			if info.IsDir() {
+				fmt.Printf("Directory: %s\n", rel)
+			} else {
+				fmt.Printf("File: %s (%d bytes)\n", rel, info.Size())
+			}
+			return nil
+		}); err != nil {
+			PrintError("Failed to verify project structure: %v", err)
+		}
 
 		PrintSuccess("Project %s initialized successfully!", projectName)
 	},
