@@ -12,8 +12,8 @@ case "$OS_TYPE" in
     *) echo "Unsupported OS: $OS_TYPE"; exit 1;;
 esac
 
-REPO_OWNER="meyanksingh"
-REPO_NAME="go-sova"
+REPO_OWNER="go-sova"
+REPO_NAME="sova-cli"
 CLI_NAME="sova"
 INSTALL_DIR="/usr/local/bin"
 
