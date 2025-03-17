@@ -3,8 +3,8 @@ package project
 import (
 	"fmt"
 
-	"github.com/meyanksingh/go-sova/internal/templates"
-	"github.com/meyanksingh/go-sova/internal/utils"
+	"github.com/go-sova/sova-cli/internal/templates"
+	"github.com/go-sova/sova-cli/internal/utils"
 )
 
 // ProjectCreator creates new projects

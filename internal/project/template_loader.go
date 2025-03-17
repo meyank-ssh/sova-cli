@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/meyanksingh/go-sova/internal/templates"
-	"github.com/meyanksingh/go-sova/internal/utils"
+	"github.com/go-sova/sova-cli/internal/templates"
+	"github.com/go-sova/sova-cli/internal/utils"
 )
 
 // TemplateManager manages project templates

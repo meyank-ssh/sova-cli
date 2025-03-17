@@ -1,4 +1,4 @@
-module github.com/meyanksingh/go-sova
+module github.com/go-sova/sova-cli
 
 go 1.23.5
 

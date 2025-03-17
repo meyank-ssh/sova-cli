@@ -17,56 +17,14 @@ Welcome to Sova CLI! This guide will help you get up and running quickly.
 
 2. **Go Install**:
    ```bash
-   go install github.com/meyanksingh/go-sova@latest
+   go install github.com/go-sova/sova-cli@latest
    ```
 
 3. **Manual Installation**:
-   - Download from [Releases](https://github.com/meyanksingh/go-sova/releases)
+   - Download from [Releases](https://github.com/go-sova/sova-cli/releases)
    - Extract and add to your PATH
 
 ## First Steps
 
 1. **Create Your First Project**:
-   ```bash
-   sova init my-project
-   cd my-project
    ```
-
-2. **Project Structure**:
-   ```
-   my-project/
-   ├── cmd/
-   ├── internal/
-   ├── pkg/
-   ├── docs/
-   └── README.md
-   ```
-
-3. **Generate Components**:
-   ```bash
-   sova generate controller UserController
-   sova generate model User
-   ```
-
-## Project Templates
-
-1. **Web Application**:
-   ```bash
-   sova init my-web --template web
-   ```
-
-2. **CLI Application**:
-   ```bash
-   sova init my-cli --template cli
-   ```
-
-3. **Library**:
-   ```bash
-   sova init my-lib --template library
-   ```
-
-## Next Steps
-
-- Check out the [Templates Guide](templates.md)
-- Learn about [Configuration](configuration.md)
-- Read our [Contributing Guide](../CONTRIBUTING.md) 

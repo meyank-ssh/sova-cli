@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/meyanksingh/go-sova/cmd"
+	"github.com/go-sova/sova-cli/cmd"
 )
 
 func main() {

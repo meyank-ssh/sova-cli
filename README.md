@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue)](https://golang.org/dl/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Go Report Card](https://goreportcard.com/badge/github.com/meyanksingh/go-sova)](https://goreportcard.com/report/github.com/meyanksingh/go-sova)
+[![Go Report Card](https://goreportcard.com/badge/github.com/go-sova/sova-cli)](https://goreportcard.com/report/github.com/go-sova/sova-cli)
 
 A modern CLI tool for scaffolding Go projects with best practices. Generate production-ready project templates in seconds.
 
@@ -21,11 +21,11 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/meyanksingh/go-sova/ma
 
 **Using Go**:
 ```bash
-go install github.com/meyanksingh/go-sova@latest
+go install github.com/go-sova/sova-cli@latest
 ```
 
 **Manual Installation**:
-Download the latest release from [GitHub Releases](https://github.com/meyanksingh/go-sova/releases/latest)
+Download the latest release from [GitHub Releases](https://github.com/go-sova/sova-cli/releases/latest)
 
 ## 💡 Usage
 
@@ -51,9 +51,9 @@ sova init my-cli --template cli
 
 ## 📚 Documentation
 
-- [Getting Started](https://github.com/meyanksingh/go-sova/wiki/getting-started)
-- [Templates](https://github.com/meyanksingh/go-sova/wiki/templates)
-- [Configuration](https://github.com/meyanksingh/go-sova/wiki/configuration)
+- [Getting Started](https://github.com/go-sova/sova-cli/wiki/getting-started)
+- [Templates](https://github.com/go-sova/sova-cli/wiki/templates)
+- [Configuration](https://github.com/go-sova/sova-cli/wiki/configuration)
 - [Contributing](CONTRIBUTING.md)
 
 ## 🤝 Contributing
@@ -68,6 +68,6 @@ We love your input! Check out our [Contributing Guide](CONTRIBUTING.md) for ways
 
 ## 📝 License
 
-Copyright © 2024 [Sova CLI Contributors](https://github.com/meyanksingh/go-sova/graphs/contributors)
+Copyright © 2024 [Sova CLI Contributors](https://github.com/go-sova/sova-cli/graphs/contributors)
 
 This project is [MIT](LICENSE) licensed. By contributing, you agree that your contributions will be licensed under its MIT License. 
