@@ -8,7 +8,6 @@ import (
 )
 
 func TestProjectInitialization(t *testing.T) {
-	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "sova-test-*")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
@@ -100,15 +99,11 @@ func TestProjectInitialization(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create project directory
 			projectDir := filepath.Join(tempDir, tc.projectName)
-
-			// Build the sova CLI command
 			cmd := exec.Command("go", "run", "../main.go", "init", tc.projectName, "--template", tc.template)
 			cmd.Dir = tempDir
-
-			// Run the command
 			output, err := cmd.CombinedOutput()
+
 			if tc.wantErr {
 				if err == nil {
 					t.Errorf("Expected error but got none. Output: %s", string(output))
@@ -118,7 +113,6 @@ func TestProjectInitialization(t *testing.T) {
 				t.Fatalf("Failed to run command: %v\nOutput: %s", err, string(output))
 			}
 
-			// Check if all expected directories exist
 			for _, dir := range tc.wantDirs {
 				dirPath := filepath.Join(projectDir, dir)
 				if _, err := os.Stat(dirPath); os.IsNotExist(err) {
@@ -126,7 +120,6 @@ func TestProjectInitialization(t *testing.T) {
 				}
 			}
 
-			// Check if all expected files exist and are not empty
 			for _, file := range tc.wantFiles {
 				filePath := filepath.Join(projectDir, file)
 				info, err := os.Stat(filePath)
@@ -139,7 +132,6 @@ func TestProjectInitialization(t *testing.T) {
 				}
 			}
 
-			// If it's a Go project, verify it can be built
 			if !tc.wantErr {
 				buildCmd := exec.Command("go", "build", "./...")
 				buildCmd.Dir = projectDir

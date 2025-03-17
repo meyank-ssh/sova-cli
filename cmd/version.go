@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Version information
 var (
 	Version   = "0.1.0"
 	BuildDate = "unknown"
@@ -16,7 +15,6 @@ var (
 	Platform  = fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
 )
 
-// versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of Sova CLI",

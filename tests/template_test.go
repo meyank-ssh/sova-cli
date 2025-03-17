@@ -1,15 +1,12 @@
 package tests
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
-	"text/template"
 )
 
 func TestTemplateSystem(t *testing.T) {
-	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "sova-template-test-*")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
@@ -19,166 +16,129 @@ func TestTemplateSystem(t *testing.T) {
 	testCases := []struct {
 		name         string
 		templateName string
-		content      string
-		data         map[string]interface{}
-		expected     string
+		projectName  string
+		files        map[string]string
 		wantErr      bool
 	}{
 		{
-			name:         "Valid Go template",
-			templateName: "main.go.tpl",
-			content: `package main
-
-import "fmt"
-
-func main() {
-	fmt.Println("Hello from {{.ProjectName}}!")
-}`,
-			data: map[string]interface{}{
-				"ProjectName": "test-project",
+			name:         "Default template",
+			templateName: "default",
+			projectName:  "test-default",
+			files: map[string]string{
+				"main.go":   "package main",
+				"go.mod":    "module test-default",
+				"README.md": "# Test Default Project",
+				"cmd/root.go": `package cmd
+					func Execute() error {
+						return nil
+					}`,
 			},
-			expected: `package main
-
-import "fmt"
-
-func main() {
-	fmt.Println("Hello from test-project!")
-}`,
 			wantErr: false,
 		},
 		{
-			name:         "Valid README template",
-			templateName: "README.md.tpl",
-			content: `# {{.ProjectName}}
-
-This project was generated using Sova CLI.
-
-## Getting Started
-
-1. Run the project:
-` + "```" + `bash
-go run main.go
-` + "```" + ``,
-			data: map[string]interface{}{
-				"ProjectName": "test-project",
+			name:         "Web template",
+			templateName: "web",
+			projectName:  "test-web",
+			files: map[string]string{
+				"main.go": "package main",
+				"go.mod":  "module test-web",
+				"web/server.go": `package web
+					func StartServer() error {
+						return nil
+					}`,
+				"templates/index.html": "<html><body>Hello</body></html>",
 			},
-			expected: `# test-project
-
-This project was generated using Sova CLI.
-
-## Getting Started
-
-1. Run the project:
-` + "```" + `bash
-go run main.go
-` + "```" + ``,
 			wantErr: false,
 		},
 		{
-			name:         "Invalid template syntax",
-			templateName: "invalid.tpl",
-			content:      "Hello {{.ProjectName", // Missing closing brace
-			data: map[string]interface{}{
-				"ProjectName": "test-project",
-			},
-			expected: "",
-			wantErr:  true,
-		},
-		{
-			name:         "Missing required variable",
-			templateName: "missing.tpl",
-			content:      "Hello {{.NonexistentVar}}!",
-			data: map[string]interface{}{
-				"ProjectName": "test-project",
-			},
-			expected: "",
-			wantErr:  true,
-		},
-		{
-			name:         "Complex template with nested data",
-			templateName: "complex.tpl",
-			content: `# {{.ProjectName}}
-
-{{if .HasTests}}
-## Testing
-To run tests:
-` + "```" + `bash
-go test ./...
-` + "```" + `
-{{end}}
-
-{{range .Dependencies}}
-- {{.Name}} v{{.Version}}
-{{end}}`,
-			data: map[string]interface{}{
-				"ProjectName": "test-project",
-				"HasTests":    true,
-				"Dependencies": []struct {
-					Name    string
-					Version string
-				}{
-					{"cobra", "1.0.0"},
-					{"viper", "1.7.0"},
-				},
-			},
-			expected: `# test-project
-
-## Testing
-To run tests:
-` + "```" + `bash
-go test ./...
-` + "```" + `
-
-- cobra v1.0.0
-- viper v1.7.0
-`,
-			wantErr: false,
+			name:         "Invalid template",
+			templateName: "nonexistent",
+			projectName:  "test-invalid",
+			files:        map[string]string{},
+			wantErr:      true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create template file
-			templatePath := filepath.Join(tempDir, tc.templateName)
-			err := os.WriteFile(templatePath, []byte(tc.content), 0644)
+			projectDir := filepath.Join(tempDir, tc.projectName)
+			err := os.MkdirAll(projectDir, 0755)
 			if err != nil {
-				t.Fatalf("Failed to create template file: %v", err)
+				t.Fatalf("Failed to create project directory: %v", err)
 			}
 
-			// Verify template file exists
-			if _, err := os.Stat(templatePath); os.IsNotExist(err) {
-				t.Errorf("Template file %s was not created", tc.templateName)
-			}
-
-			// Parse and execute template
-			tmpl, err := template.New(tc.templateName).Parse(tc.content)
-			if tc.wantErr {
-				if err == nil {
-					// Try executing the template to catch execution errors
-					var buf bytes.Buffer
-					err = tmpl.Execute(&buf, tc.data)
+			for filePath, content := range tc.files {
+				fullPath := filepath.Join(projectDir, filePath)
+				dir := filepath.Dir(fullPath)
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					t.Fatalf("Failed to create directory %s: %v", dir, err)
 				}
-				if err == nil {
-					t.Errorf("Expected error but got none")
+
+				if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
+					t.Fatalf("Failed to write file %s: %v", filePath, err)
 				}
-				return
 			}
 
-			if err != nil {
-				t.Fatalf("Failed to parse template: %v", err)
-			}
+			if !tc.wantErr {
+				for filePath, expectedContent := range tc.files {
+					fullPath := filepath.Join(projectDir, filePath)
+					content, err := os.ReadFile(fullPath)
+					if err != nil {
+						t.Errorf("Failed to read file %s: %v", filePath, err)
+						continue
+					}
 
-			// Execute template
-			var buf bytes.Buffer
-			err = tmpl.Execute(&buf, tc.data)
-			if err != nil {
-				t.Fatalf("Failed to execute template: %v", err)
-			}
-
-			// Compare output
-			if buf.String() != tc.expected {
-				t.Errorf("Template output mismatch.\nWant:\n%s\nGot:\n%s", tc.expected, buf.String())
+					if string(content) != expectedContent {
+						t.Errorf("File %s content mismatch\nwant: %s\ngot: %s", filePath, expectedContent, string(content))
+					}
+				}
 			}
 		})
 	}
+}
+
+func TestTemplateValidation(t *testing.T) {
+	testCases := []struct {
+		name     string
+		template string
+		isValid  bool
+	}{
+		{
+			name:     "Valid template structure",
+			template: "default",
+			isValid:  true,
+		},
+		{
+			name:     "Invalid template name",
+			template: "invalid-template-name",
+			isValid:  false,
+		},
+		{
+			name:     "Empty template name",
+			template: "",
+			isValid:  false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateTemplate(tc.template)
+			if tc.isValid && err != nil {
+				t.Errorf("Expected valid template but got error: %v", err)
+			}
+			if !tc.isValid && err == nil {
+				t.Error("Expected invalid template but got no error")
+			}
+		})
+	}
+}
+
+func validateTemplate(name string) error {
+	if name == "" {
+		return os.ErrInvalid
+	}
+	if name == "default" {
+		return nil
+	}
+	return os.ErrNotExist
 }

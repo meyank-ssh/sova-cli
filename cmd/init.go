@@ -15,7 +15,6 @@ var (
 	initForce    bool
 )
 
-// initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init [project-name]",
 	Short: "Initialize a new project",
@@ -34,7 +33,6 @@ Example:
 			projectName = args[0]
 		}
 
-		// Get the current working directory
 		cwd, err := os.Getwd()
 		if err != nil {
 			PrintError("Failed to get current directory: %v", err)
@@ -42,11 +40,9 @@ Example:
 		}
 		fmt.Printf("Current working directory: %s\n", cwd)
 
-		// Create the project directory path
 		projectDir := filepath.Join(cwd, projectName)
 		fmt.Printf("Project directory will be: %s\n", projectDir)
 
-		// Check if the directory already exists
 		if _, err := os.Stat(projectDir); !os.IsNotExist(err) {
 			if !initForce {
 				PrintError("Directory %s already exists. Use --force to overwrite.", projectName)
@@ -62,14 +58,12 @@ Example:
 		PrintInfo("Initializing new project: %s", projectName)
 		PrintInfo("Using template: %s", initTemplate)
 
-		// Create project directory
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			PrintError("Failed to create project directory: %v", err)
 			os.Exit(1)
 		}
 		fmt.Printf("Created project directory: %s\n", projectDir)
 
-		// Create basic project structure
 		dirs := []string{
 			"cmd",
 			"internal",
@@ -90,7 +84,6 @@ Example:
 			fmt.Printf("Created directory: %s\n", dirPath)
 		}
 
-		// Create basic files
 		files := map[string]string{
 			"main.go": `package main
 
@@ -137,7 +130,6 @@ This project was generated using Sova CLI.
 			fmt.Printf("Created file: %s\n", filePath)
 		}
 
-		// Verify the project structure
 		if err := filepath.Walk(projectDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -166,11 +158,9 @@ This project was generated using Sova CLI.
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	// Add flags specific to the init command
 	initCmd.Flags().StringVarP(&initTemplate, "template", "t", "default", "Template to use for project initialization")
 	initCmd.Flags().BoolVarP(&initForce, "force", "f", false, "Force initialization even if directory exists")
 
-	// Bind flags to viper
 	viper.BindPFlag("init.template", initCmd.Flags().Lookup("template"))
 	viper.BindPFlag("init.force", initCmd.Flags().Lookup("force"))
 }

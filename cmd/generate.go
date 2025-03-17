@@ -13,7 +13,6 @@ var (
 	generateForce  bool
 )
 
-// generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate [component]",
 	Short: "Generate project components",
@@ -38,14 +37,12 @@ Example:
 			os.Exit(1)
 		}
 
-		// Get the current working directory
 		cwd, err := os.Getwd()
 		if err != nil {
 			PrintError("Failed to get current directory: %v", err)
 			os.Exit(1)
 		}
 
-		// Determine the output directory
 		outputDir := cwd
 		if generateOutput != "" {
 			if filepath.IsAbs(generateOutput) {
@@ -58,9 +55,6 @@ Example:
 		PrintInfo("Generating %s: %s", componentType, componentName)
 		PrintInfo("Output directory: %s", outputDir)
 
-		// TODO: Implement component generation logic
-		// This would call functions from the internal/templates package
-
 		PrintSuccess("%s %s generated successfully!", componentType, componentName)
 	},
 }
@@ -68,11 +62,9 @@ Example:
 func init() {
 	rootCmd.AddCommand(generateCmd)
 
-	// Add flags specific to the generate command
 	generateCmd.Flags().StringVarP(&generateOutput, "output", "o", "", "Output directory for generated files")
 	generateCmd.Flags().BoolVarP(&generateForce, "force", "f", false, "Force generation even if files exist")
 
-	// Bind flags to viper
 	viper.BindPFlag("generate.output", generateCmd.Flags().Lookup("output"))
 	viper.BindPFlag("generate.force", generateCmd.Flags().Lookup("force"))
 }
