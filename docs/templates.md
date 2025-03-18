@@ -1,63 +1,130 @@
-# Templates Guide
+# Project Templates
 
-Sova CLI comes with several built-in templates to help you kickstart your projects.
+This document describes the available project templates and their structure in Sova CLI.
 
-## Available Templates
+## API Template
 
-### 1. Default Template
-Basic Go project structure with essential directories.
+The API template creates a Go web service with a clean architecture structure.
 
+### Directory Structure
 ```
 📦 project/
-├── cmd/           # Command-line interfaces
+├── cmd/           # Application entry point
 ├── internal/      # Private application code
+│   ├── handlers/  # HTTP handlers
+│   ├── middleware/# Middleware components
+│   ├── models/    # Data models
+│   ├── server/    # Server implementation
+│   └── service/   # Service layer
 ├── pkg/          # Public libraries
 ├── api/          # API definitions
+├── routes/       # Route definitions
 ├── docs/         # Documentation
 └── scripts/      # Build scripts
 ```
 
-### 2. Web Template
-Complete structure for web applications.
+### Features
+- Clean architecture structure
+- HTTP server using Gin framework
+- Environment configuration with .env
+- Docker support with docker-compose
+- Optional integrations:
+  - PostgreSQL database
+  - Redis cache
+  - RabbitMQ message queue
+  - Zap logging middleware
 
+### Docker Services
+When enabled, the following services are available:
+- PostgreSQL (port: 5432)
+- Redis (port: 6379)
+- RabbitMQ (ports: 5672, 15672)
+
+### Configuration
+- Environment variables in `.env`
+- Docker volumes for data persistence
+- Customizable service configurations
+
+## CLI Template
+
+The CLI template creates a command-line application using Cobra.
+
+### Directory Structure
 ```
 📦 project/
 ├── cmd/
-│   └── server/   # Server entry point
+│   ├── root/             # Root command
+│   └── version/          # Version command
 ├── internal/
-│   ├── handlers/ # HTTP handlers
-│   ├── middleware/
-│   ├── models/   # Data models
-│   └── db/       # Database layer
-├── web/
-│   ├── templates/
-│   └── static/
-└── docs/
+│   ├── commands/         # Command implementations
+│   ├── config/          # Configuration
+│   └── utils/           # Utility functions
+├── pkg/                 # Public packages
+├── docs/               # Documentation
+├── scripts/            # Build and deployment scripts
+└── tests/              # Integration tests
 ```
 
-### 3. CLI Template
-Structure for command-line applications.
+### Features
+- Cobra-based CLI structure
+- Command management
+- Configuration handling
+- Utility functions for CLI operations
 
-```
-📦 project/
-├── cmd/
-│   ├── root/     # Root command
-│   └── commands/ # Subcommands
-├── internal/
-│   └── config/   # Configuration
-└── docs/
+## Common Features
+
+Both templates include:
+- Go modules support
+- `.gitignore` with appropriate exclusions
+- Documentation structure
+- Test setup
+- Build scripts
+
+## Recent Updates
+
+1. Fixed Import Paths
+   - Moved routes to `internal/routes`
+   - Updated import paths in templates
+   - Fixed module name references
+
+2. Docker Compose
+   - Removed obsolete version attribute
+   - Added volume configurations
+   - Improved service definitions
+
+3. Project Structure
+   - Reorganized internal packages
+   - Added consistent directory structure
+   - Improved template organization
+
+4. Git Configuration
+   - Added comprehensive `.gitignore` templates
+   - Separate configurations for API and CLI projects
+   - Docker-specific ignores for API projects
+
+## Usage
+
+Create a new API project:
+```bash
+sova-cli create api my-project
 ```
 
-### 4. Library Template
-Structure for Go libraries.
+Create a new CLI project:
+```bash
+sova-cli create cli my-project
+```
 
-```
-📦 project/
-├── pkg/          # Public API
-├── internal/     # Private code
-├── examples/     # Usage examples
-└── docs/         # Documentation
-```
+## Configuration Options
+
+### API Projects
+- `UsePostgres`: Enable PostgreSQL support
+- `UseRedis`: Enable Redis support
+- `UseRabbitMQ`: Enable RabbitMQ support
+- `UseZap`: Enable Zap logging middleware
+
+### CLI Projects
+- Basic CLI structure with extensible commands
+- Configuration management with Viper
 
 ## Creating Custom Templates
 

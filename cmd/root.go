@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
-	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/go-sova/sova-cli/templates"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -17,17 +18,22 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "sova",
-	Short: "Sova CLI - A tool for generating project boilerplate",
-	Long: `Sova CLI is a powerful tool for initializing and generating 
-project boilerplate code. It helps you quickly set up new projects
+	Short: "Sova CLI - A tool for initializing projects",
+	Long: `Sova CLI is a powerful tool for initializing projects 
 with predefined templates and structures.
 
-Use 'sova init' to create a new project or 'sova generate' to 
-generate specific components for your existing project.`,
+Available Commands:
+  init        Initialize a new project with your desired settings
+  version     Display version information
+  help        Help about any command
+
+Use 'sova init' to create a new project with your desired settings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
 }
+
+var templateFS fs.FS
 
 func Execute() error {
 	return rootCmd.Execute()
@@ -41,7 +47,12 @@ func init() {
 
 	rootCmd.Flags().BoolP("version", "V", false, "display version information")
 
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+
 	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+
+	// Initialize template filesystem
+	templateFS = templates.GetTemplateFS()
 }
 
 func initConfig() {
@@ -81,13 +92,12 @@ func PrintError(format string, a ...interface{}) {
 	color.Red(format, a...)
 }
 
-func GetTemplatesDir() string {
-
-	execPath, err := os.Executable()
+// GetTemplate returns the contents of a template file
+func GetTemplate(category, name string) (string, error) {
+	templatePath := templates.GetTemplatePath(category, name)
+	content, err := fs.ReadFile(templateFS, templatePath)
 	if err != nil {
-		return "templates"
+		return "", fmt.Errorf("failed to read template %s: %w", templatePath, err)
 	}
-
-	execDir := filepath.Dir(execPath)
-	return filepath.Join(execDir, "templates")
+	return string(content), nil
 }
