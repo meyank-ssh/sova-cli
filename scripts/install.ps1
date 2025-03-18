@@ -75,40 +75,26 @@ Get-ChildItem -Path $installDir -Recurse | ForEach-Object {
     Write-Host "- $($_.FullName)"
 }
 
-# Locate the extracted binary - look for the Windows executable name
-$extractedBinary = "${cliName}_windows_${arch}.exe"
-$binaryPath = "$installDir\$extractedBinary"
-
-Write-Host "`nLooking for binary:" -ForegroundColor Cyan
-Write-Host "- Expected binary name: $extractedBinary"
-Write-Host "- Expected full path: $binaryPath"
-
-if (!(Test-Path -Path $binaryPath)) {
-    Write-Host "`nError: Extracted binary not found at: $binaryPath" -ForegroundColor Red
-    Write-Host "Searching for any .exe files in install directory..."
-    $exeFiles = Get-ChildItem -Path $installDir -Filter "*.exe" -Recurse
-    if ($exeFiles) {
-        Write-Host "Found these .exe files:"
-        $exeFiles | ForEach-Object {
-            Write-Host "- $($_.FullName)"
-        }
-    } else {
-        Write-Host "No .exe files found in install directory"
-    }
+# Find and rename the executable
+Write-Host "`nLocating and renaming executable..." -ForegroundColor Cyan
+$exeFiles = Get-ChildItem -Path $installDir -Filter "*.exe" -Recurse
+if ($exeFiles) {
+    $exeFile = $exeFiles[0]  # Take the first exe file found
+    Write-Host "Found executable: $($exeFile.FullName)"
+    $targetPath = Join-Path $installDir "sova.exe"
+    Write-Host "Renaming to: $targetPath"
+    Move-Item -Path $exeFile.FullName -Destination $targetPath -Force
+} else {
+    Write-Host "Error: No executable found in the extracted files" -ForegroundColor Red
     exit 1
 }
-
-# Rename the binary to the CLI name
-Write-Host "`nRenaming binary:" -ForegroundColor Cyan
-Write-Host "- From: $binaryPath"
-Write-Host "- To: $installDir\$cliName.exe"
-Rename-Item -Path $binaryPath -NewName "$cliName.exe" -Force
 
 # Add the install directory to PATH if not already present
 $path = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
 if ($installDir -notin $path) {
-    Write-Host "`nAdding $installDir to PATH..."
+    Write-Host "`nAdding installation directory to PATH: $installDir"
     [System.Environment]::SetEnvironmentVariable("Path", "$path;$installDir", [System.EnvironmentVariableTarget]::User)
+    Write-Host "Successfully added to PATH"
 }
 
 # Clean up temporary files
@@ -117,4 +103,4 @@ Remove-Item -Path $tarFile -Force
 
 Write-Host "`nInstallation completed successfully." -ForegroundColor Green
 Write-Host "Restart your terminal or run 'refreshenv' if using Chocolatey."
-Write-Host "Run '$cliName --help' to verify the installation."
+Write-Host "Run 'sova --help' to verify the installation."
