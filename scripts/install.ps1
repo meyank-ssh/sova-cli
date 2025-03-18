@@ -69,13 +69,20 @@ try {
     exit 1
 }
 
-# List contents of install directory
-Write-Host "`nContents of install directory ($installDir):" -ForegroundColor Cyan
+# First, clean up any ._ prefixed files
+Write-Host "`nCleaning up macOS metadata files..." -ForegroundColor Cyan
+Get-ChildItem -Path $installDir -Filter "._*" | ForEach-Object {
+    Write-Host "Removing: $($_.FullName)"
+    Remove-Item $_.FullName -Force
+}
+
+# List contents of install directory after cleanup
+Write-Host "`nContents of install directory after cleanup ($installDir):" -ForegroundColor Cyan
 Get-ChildItem -Path $installDir -Recurse | ForEach-Object {
     Write-Host "- $($_.FullName)"
 }
 
-# Find and rename the executable - specifically looking for sova_windows_amd64.exe
+# Now handle the correct executable
 Write-Host "`nLocating and renaming executable..." -ForegroundColor Cyan
 $targetExe = "sova_windows_amd64.exe"
 $exeFile = Get-ChildItem -Path $installDir -Filter $targetExe | Select-Object -First 1
@@ -91,11 +98,6 @@ if ($exeFile) {
     }
     
     Move-Item -Path $exeFile.FullName -Destination $targetPath -Force
-    
-    # Clean up any ._ prefixed files
-    Get-ChildItem -Path $installDir -Filter "._*" | ForEach-Object {
-        Remove-Item $_.FullName -Force
-    }
 } else {
     Write-Host "Error: Could not find $targetExe in the extracted files" -ForegroundColor Red
     exit 1
