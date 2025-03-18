@@ -2,7 +2,7 @@
 setlocal
 
 :: Define download URL
-set URL=https://raw.githubusercontent.com/meyanksingh/sova-cli/meyank/InstallFix/scripts/install.ps1
+set URL=https://raw.githubusercontent.com/go-sova/sova-cli/master/scripts/install.ps1
 set PS_SCRIPT=install.ps1
 
 :: Check if curl exists, else use PowerShell to download
