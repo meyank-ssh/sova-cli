@@ -87,12 +87,60 @@ func PrintError(format string, a ...interface{}) {
 }
 
 func GetTemplatesDir() string {
-
 	execPath, err := os.Executable()
+	if err != nil {
+		return findTemplatesInWorkingDir()
+	}
+
+	execDir := filepath.Dir(execPath)
+	templateDirs := []string{
+		filepath.Join(execDir, "templates"),
+		filepath.Join(execDir, "..", "templates"),
+		filepath.Join(execDir, "..", "..", "templates"),
+	}
+
+	for _, dir := range templateDirs {
+		if isValidTemplateDir(dir) {
+			return dir
+		}
+	}
+
+	return findTemplatesInWorkingDir()
+}
+
+func findTemplatesInWorkingDir() string {
+	wd, err := os.Getwd()
 	if err != nil {
 		return "templates"
 	}
 
-	execDir := filepath.Dir(execPath)
-	return filepath.Join(execDir, "templates")
+	templateDirs := []string{
+		filepath.Join(wd, "templates"),
+		filepath.Join(wd, "..", "templates"),
+		filepath.Join(wd, "..", "..", "templates"),
+	}
+
+	for _, dir := range templateDirs {
+		if isValidTemplateDir(dir) {
+			return dir
+		}
+	}
+
+	return "templates"
+}
+
+func isValidTemplateDir(dir string) bool {
+	if _, err := os.Stat(dir); err != nil {
+		return false
+	}
+
+	requiredDirs := []string{"api", "cli"}
+	for _, subdir := range requiredDirs {
+		subdirPath := filepath.Join(dir, subdir)
+		if _, err := os.Stat(subdirPath); err != nil {
+			return false
+		}
+	}
+
+	return true
 }

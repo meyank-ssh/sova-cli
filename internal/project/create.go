@@ -2,6 +2,8 @@ package project
 
 import (
 	"fmt"
+	"path/filepath"
+	"time"
 
 	"github.com/go-sova/sova-cli/internal/templates"
 	"github.com/go-sova/sova-cli/pkg/utils"
@@ -67,7 +69,29 @@ func (c *ProjectCreator) CreateProject(projectName, projectDir, templateName str
 		}
 	}
 
+	// Loop through files and handle template category subdirectories
 	for filePath, templateName := range files {
+		// If the template doesn't have a path separator, check the appropriate category directory
+		if filepath.Base(templateName) == templateName {
+			// For templates like "go-mod.tpl", look in the category directory first
+			categoryTemplate := filepath.Join(templateName, templateName)
+			c.logger.Debug("Looking for template in category directory: %s", categoryTemplate)
+
+			// Try to find this template in the appropriate category subdirectory
+			if templateName == "default" {
+				categoryTemplate = filepath.Join("default", templateName)
+			} else if templateName == "cli" {
+				categoryTemplate = filepath.Join("cli", templateName)
+			} else if templateName == "api" {
+				categoryTemplate = filepath.Join("api", templateName)
+
+			// Check if category template exists
+			templatePath := filepath.Join(c.templateLoader.GetTemplateDir(), categoryTemplate)
+			if utils.FileExists(templatePath) {
+				templateName = categoryTemplate
+			}
+		}
+
 		c.logger.Debug("Generating file: %s from template: %s", filePath, templateName)
 		if err := c.fileGenerator.GenerateFile(templateName, filePath, projectData); err != nil {
 			return fmt.Errorf("failed to generate file: %w", err)
@@ -78,65 +102,31 @@ func (c *ProjectCreator) CreateProject(projectName, projectDir, templateName str
 	return nil
 }
 
-func (c *ProjectCreator) getProjectData(projectName, description string) (*ProjectData, error) {
-	moduleName, err := utils.ReadInputWithDefault("Module name", "github.com/example/"+projectName)
-	if err != nil {
-		return nil, err
-	}
-
-	projectDescription, err := utils.ReadInputWithDefault("Project description", description)
-	if err != nil {
-		return nil, err
-	}
-
-	goVersion, err := utils.ReadInputWithDefault("Go version", "1.21")
-	if err != nil {
-		return nil, err
-	}
-
-	author, err := utils.ReadInputWithDefault("Author", "")
-	if err != nil {
-		return nil, err
-	}
-
-	license, err := utils.ReadInputWithOptions("License", []string{
-		"MIT",
-		"Apache-2.0",
-		"GPL-3.0",
-		"BSD-3-Clause",
-		"None",
-	}, "MIT")
-	if err != nil {
-		return nil, err
-	}
-
-	year := utils.GetCurrentYear()
-
+func (c *ProjectCreator) getProjectData(projectName, projectDescription string) (*ProjectData, error) {
+	// TODO: Get project data from user or default values
 	return &ProjectData{
 		ProjectName:        projectName,
 		ProjectDescription: projectDescription,
-		ModuleName:         moduleName,
-		GoVersion:          goVersion,
-		Author:             author,
-		License:            license,
-		Year:               year,
+		ModuleName:         projectName,
+		GoVersion:          "1.21",
+		Author:             "Meyank Singh",
+		License:            "MIT",
+		Year:               fmt.Sprintf("%d", time.Now().Year()),
 	}, nil
 }
 
 func (c *ProjectCreator) ListAvailableTemplates() ([]string, error) {
-	return []string{"default", "go-web", "cli", "library"}, nil
+	return []string{"default", "go-api", "cli"}, nil
 }
 
 func (c *ProjectCreator) GetTemplateDescription(templateName string) (string, error) {
 	switch templateName {
 	case "default":
 		return "A basic Go project with a minimal structure", nil
-	case "go-web":
+	case "go-api":
 		return "A Go web application with a complete structure for web development", nil
 	case "cli":
 		return "A command-line interface application with Cobra", nil
-	case "library":
-		return "A Go library with examples and documentation", nil
 	default:
 		return "", fmt.Errorf("unknown template: %s", templateName)
 	}

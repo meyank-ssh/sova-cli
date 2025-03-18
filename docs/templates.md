@@ -1,41 +1,29 @@
 # Templates Guide
 
-Sova CLI comes with several built-in templates to help you kickstart your projects.
+Sova CLI comes with two built-in templates to help you kickstart your projects.
 
 ## Available Templates
 
-### 1. Default Template
-Basic Go project structure with essential directories.
+### 1. API Template
+Complete structure for API applications.
 
 ```
 📦 project/
-├── cmd/           # Command-line interfaces
+├── cmd/           # Application entry point
 ├── internal/      # Private application code
+│   ├── handlers/  # HTTP handlers
+│   ├── middleware/# Middleware components
+│   ├── models/    # Data models
+│   ├── server/    # Server implementation
+│   └── service/   # Service layer
 ├── pkg/          # Public libraries
 ├── api/          # API definitions
+├── routes/       # Route definitions
 ├── docs/         # Documentation
 └── scripts/      # Build scripts
 ```
 
-### 2. Web Template
-Complete structure for web applications.
-
-```
-📦 project/
-├── cmd/
-│   └── server/   # Server entry point
-├── internal/
-│   ├── handlers/ # HTTP handlers
-│   ├── middleware/
-│   ├── models/   # Data models
-│   └── db/       # Database layer
-├── web/
-│   ├── templates/
-│   └── static/
-└── docs/
-```
-
-### 3. CLI Template
+### 2. CLI Template
 Structure for command-line applications.
 
 ```
@@ -44,20 +32,28 @@ Structure for command-line applications.
 │   ├── root/     # Root command
 │   └── commands/ # Subcommands
 ├── internal/
-│   └── config/   # Configuration
-└── docs/
-```
-
-### 4. Library Template
-Structure for Go libraries.
-
-```
-📦 project/
-├── pkg/          # Public API
-├── internal/     # Private code
-├── examples/     # Usage examples
+│   ├── commands/ # Command implementations
+│   ├── config/   # Configuration
+│   └── utils/    # Utility functions
 └── docs/         # Documentation
 ```
+
+## Features
+
+### API Template Features
+- Complete API project structure
+- Built-in middleware (logging, CORS, etc.)
+- Service layer with PostgreSQL, Redis, and RabbitMQ support
+- Environment configuration
+- Docker support
+- API documentation structure
+
+### CLI Template Features
+- Cobra-based CLI structure
+- Command organization
+- Configuration management
+- Utility functions
+- Documentation structure
 
 ## Creating Custom Templates
 
