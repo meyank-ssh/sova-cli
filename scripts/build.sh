@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION="v0.1.1"
-BINARY_NAME="sova-cli"
+BINARY_NAME="sova"
 BUILD_DIR="dist"
 BUILD_DATE=$(date -u '+%Y-%m-%d %H:%M:%S')
 GIT_COMMIT=$(git rev-parse --short HEAD)
@@ -19,15 +19,21 @@ BUILD_FLAGS=(
 BUILD_FLAGS_STR=$(IFS=' '; echo "${BUILD_FLAGS[*]}")
 
 # Build for different platforms
-GOOS=linux GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}-${VERSION}-linux-amd64 ./cmd/main.go
-GOOS=linux GOARCH=arm64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}-${VERSION}-linux-arm64 ./cmd/main.go
-GOOS=darwin GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}-${VERSION}-darwin-amd64 ./cmd/main.go
-GOOS=darwin GOARCH=arm64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}-${VERSION}-darwin-arm64 ./cmd/main.go
-GOOS=windows GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}-${VERSION}-windows-amd64.exe ./cmd/main.go
+GOOS=linux GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME} ./cmd/main.go
+tar -czf $BUILD_DIR/${BINARY_NAME}_linux_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}
+rm $BUILD_DIR/${BINARY_NAME}
+
+GOOS=darwin GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME} ./cmd/main.go
+tar -czf $BUILD_DIR/${BINARY_NAME}_darwin_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}
+rm $BUILD_DIR/${BINARY_NAME}
+
+GOOS=windows GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}.exe ./cmd/main.go
+tar -czf $BUILD_DIR/${BINARY_NAME}_windows_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}.exe
+rm $BUILD_DIR/${BINARY_NAME}.exe
 
 # Create checksums
 cd $BUILD_DIR
-sha256sum * > checksums.txt
+sha256sum *.tar.gz > checksums.txt
 cd ..
 
-echo "Build complete! Binaries are available in the $BUILD_DIR directory" 
+echo "Build complete! Archives are available in the $BUILD_DIR directory"
