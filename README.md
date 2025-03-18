@@ -34,11 +34,6 @@ Create a new project:
 # Basic project
 sova init my-project
 
-# Web project
-sova init my-web --template web
-
-# CLI project
-sova init my-cli --template cli
 ```
 
 ## 📦 Features
