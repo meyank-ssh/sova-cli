@@ -8,7 +8,35 @@ $cliName = "sova"
 $arch = "amd64"
 $installDir = "$env:LOCALAPPDATA\$cliName"
 
+function Cleanup {
+    param (
+        [string]$tarFile
+    )
+    if (Test-Path $tarFile) {
+        Remove-Item -Path $tarFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Get-InstalledVersion {
+    $sovaBinary = Join-Path $installDir "sova.exe"
+    if (Test-Path $sovaBinary) {
+        try {
+            $version = & $sovaBinary --version 2>$null
+            return $version
+        } catch {
+            return $null
+        }
+    }
+    return $null
+}
+
 Write-Host "Installing $cliName..." -ForegroundColor Cyan
+
+# Check if already installed
+$installedVersion = Get-InstalledVersion
+if ($installedVersion) {
+    Write-Host "Current version: $installedVersion"
+}
 
 # Ensure the install directory exists
 if (!(Test-Path -Path $installDir)) {
@@ -16,10 +44,18 @@ if (!(Test-Path -Path $installDir)) {
 }
 
 # Fetch the latest release tag from GitHub API
-$latestRelease = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/latest" -Headers @{"User-Agent"="Mozilla/5.0"}).tag_name
-
-if (!$latestRelease) {
-    Write-Host "Error: Failed to retrieve latest release." -ForegroundColor Red
+try {
+    $latestRelease = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/latest" -Headers @{"User-Agent"="Mozilla/5.0"}).tag_name
+    if (!$latestRelease) {
+        throw "No release found"
+    }
+    
+    if ($installedVersion -eq $latestRelease) {
+        Write-Host "Latest version ($latestRelease) already installed."
+        exit 0
+    }
+} catch {
+    Write-Host "Error: Failed to check latest version." -ForegroundColor Red
     exit 1
 }
 
@@ -29,10 +65,11 @@ $downloadUrl = "https://github.com/$repoOwner/$repoName/releases/download/$lates
 $tarFile = "$env:TEMP\$assetName"
 
 try {
-    Write-Host "Downloading latest version..." -ForegroundColor Cyan
+    Write-Host "Downloading version $latestRelease..." -ForegroundColor Cyan
     Invoke-WebRequest -Uri $downloadUrl -OutFile $tarFile -Headers @{"User-Agent"="Mozilla/5.0"}
 } catch {
-    Write-Host "Error: Download failed." -ForegroundColor Red
+    Write-Host "Error: Download failed. Please check your internet connection." -ForegroundColor Red
+    Cleanup -tarFile $tarFile
     exit 1
 }
 
@@ -42,6 +79,9 @@ try {
     
     # Extract archive
     tar -xzf $tarFile -C $installDir
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to extract archive"
+    }
     
     # Clean up macOS metadata files
     Get-ChildItem -Path $installDir -Filter "._*" | Remove-Item -Force
@@ -56,8 +96,14 @@ try {
             Remove-Item $targetPath -Force
         }
         Move-Item -Path $exeFile.FullName -Destination $targetPath -Force
+        
+        # Verify the binary works
+        $testResult = & $targetPath --version 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Binary verification failed"
+        }
     } else {
-        throw "Installation failed: Required files not found."
+        throw "Required files not found"
     }
     
     # Add to PATH
@@ -67,11 +113,12 @@ try {
     }
     
     # Cleanup
-    Remove-Item -Path $tarFile -Force
+    Cleanup -tarFile $tarFile
     
-    Write-Host "`n$cliName installed successfully!" -ForegroundColor Green
+    Write-Host "`n$cliName $latestRelease installed successfully!" -ForegroundColor Green
     Write-Host "Please restart your terminal to use $cliName."
 } catch {
-    Write-Host "Error: Installation failed." -ForegroundColor Red
+    Write-Host "Error: Installation failed - $($_.Exception.Message)" -ForegroundColor Red
+    Cleanup -tarFile $tarFile
     exit 1
 }
