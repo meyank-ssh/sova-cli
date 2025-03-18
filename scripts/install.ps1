@@ -42,13 +42,17 @@ if (!(Test-Path -Path $tarFile)) {
 Write-Host "Extracting files..."
 tar -xzf $tarFile -C $installDir
 
-# Locate the extracted binary
-$binaryPath = "$installDir\$cliName.exe"
+# Locate the extracted binary - look for the Windows executable name
+$extractedBinary = "${cliName}_windows_${arch}.exe"
+$binaryPath = "$installDir\$extractedBinary"
 
 if (!(Test-Path -Path $binaryPath)) {
     Write-Host "Error: Extracted binary not found." -ForegroundColor Red
     exit 1
 }
+
+# Rename the binary to the CLI name
+Rename-Item -Path $binaryPath -NewName "$cliName.exe" -Force
 
 # Add the install directory to PATH if not already present
 $path = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
