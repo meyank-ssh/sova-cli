@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 
 # Define variables
-$repoOwner = "go-sova"
+$repoOwner = "meyanksingh"
 $repoName = "sova-cli"
 $cliName = "sova"
 $arch = "amd64"
@@ -15,7 +15,7 @@ if (!(Test-Path -Path $installDir)) {
 
 # Fetch the latest release tag from GitHub API
 Write-Host "Fetching latest release of $cliName..."
-$latestRelease = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/latest").tag_name
+$latestRelease = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/latest" -Headers @{"User-Agent"="Mozilla/5.0"}).tag_name
 
 if (!$latestRelease) {
     Write-Host "Error: Failed to retrieve latest release." -ForegroundColor Red
@@ -24,23 +24,23 @@ if (!$latestRelease) {
 
 Write-Host "Latest release found: $latestRelease"
 
-# Construct download URL
-$assetName = "${cliName}_windows_${arch}.zip"
+# Fix the file name to match your release files
+$assetName = "${cliName}_windows_${arch}.tar.gz"
 $downloadUrl = "https://github.com/$repoOwner/$repoName/releases/download/$latestRelease/$assetName"
-$zipFile = "$env:TEMP\$assetName"
+$tarFile = "$env:TEMP\$assetName"
 
 # Download the CLI archive
-Write-Host "Downloading $cliName..."
-Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile
+Write-Host "Downloading $cliName from $downloadUrl..."
+Invoke-WebRequest -Uri $downloadUrl -OutFile $tarFile -Headers @{"User-Agent"="Mozilla/5.0"}
 
-if (!(Test-Path -Path $zipFile)) {
+if (!(Test-Path -Path $tarFile)) {
     Write-Host "Error: Download failed." -ForegroundColor Red
     exit 1
 }
 
-# Extract the ZIP file
+# Extract the .tar.gz file using tar
 Write-Host "Extracting files..."
-Expand-Archive -Path $zipFile -DestinationPath $installDir -Force
+tar -xzf $tarFile -C $installDir
 
 # Locate the extracted binary
 $binaryPath = "$installDir\$cliName.exe"
@@ -58,7 +58,7 @@ if ($installDir -notin $path) {
 }
 
 # Clean up temporary files
-Remove-Item -Path $zipFile -Force
+Remove-Item -Path $tarFile -Force
 
 Write-Host "`nInstallation completed successfully." -ForegroundColor Green
 Write-Host "Restart your terminal or run 'refreshenv' if using Chocolatey."
