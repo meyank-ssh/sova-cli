@@ -55,10 +55,10 @@ This command will create a new directory with the project name and set up all ne
 
 		fmt.Printf("\nProject %s created successfully!\n", projectName)
 		fmt.Println("\nNext steps:")
-		fmt.Printf("1. cd %s\n", projectName)
-		fmt.Println("2. go mod tidy")
-		fmt.Println("3. docker compose up -d")
-		fmt.Println("4. go run cmd/main.go")
+		fmt.Printf("cd %s\n", projectName)
+		fmt.Println("go mod tidy")
+		fmt.Println("docker compose up -d")
+		fmt.Println("go run cmd/main.go")
 		fmt.Println("\nYour API will be available at http://localhost:8080")
 		fmt.Println("Test the ping endpoint: curl http://localhost:8080/api/ping")
 

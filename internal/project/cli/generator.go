@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
-	"github.com/go-sova/sova-cli/internal/templates"
 	"github.com/go-sova/sova-cli/pkg/questions"
 	"github.com/go-sova/sova-cli/pkg/utils"
+	"github.com/go-sova/sova-cli/templates"
 )
 
 type CLIProjectGenerator struct {
@@ -21,14 +20,7 @@ type CLIProjectGenerator struct {
 }
 
 func NewCLIProjectGenerator(projectName, projectDir string, answers *questions.ProjectAnswers) *CLIProjectGenerator {
-	execPath, err := os.Executable()
-	templateDir := "templates"
-	if err == nil {
-		execDir := filepath.Dir(execPath)
-		templateDir = filepath.Join(execDir, "templates")
-	}
-
-	loader := templates.NewTemplateLoader(templateDir)
+	loader := templates.NewTemplateLoader()
 	return &CLIProjectGenerator{
 		ProjectName:    projectName,
 		ProjectDir:     projectDir,
@@ -49,22 +41,24 @@ func (g *CLIProjectGenerator) Generate() (map[string]string, []string, error) {
 	dirs := []string{
 		"cmd",
 		"internal",
+		"pkg",
+		"docs",
+		"scripts",
 		"test",
+		"cmd/root",
+		"internal/commands",
+		"internal/config",
 	}
 
-	// Map of file paths to template names
 	fileTemplates := map[string]string{
-		"cmd/root.go":        "cli/root.tpl",
-		"cmd/command1.go":    "cli/command.tpl",
-		"cmd/command2.go":    "cli/command.tpl",
-		"internal/utils.go":  "cli/utils.tpl",
-		"internal/config.go": "cli/config.tpl",
-		"main.go":            "cli/main.tpl",
-		"README.md":          "cli/readme.tpl",
-		"go.mod":             "cli/go-mod.tpl",
+		"cmd/root/root.go":          "cli/root.tpl",
+		"cmd/version/version.go":    "cli/version.tpl",
+		"internal/commands/cmd.go":  "cli/commands.tpl",
+		"internal/config/config.go": "cli/config.tpl",
+		"internal/utils/utils.go":   "cli/utils.tpl",
+		".gitignore":                "cli/gitignore.tpl",
 	}
 
-	// Generate files using templates
 	files := make(map[string]string)
 	for filePath, templateName := range fileTemplates {
 		files[filePath] = templateName
@@ -77,22 +71,11 @@ func (g *CLIProjectGenerator) WriteFiles(files map[string]string) error {
 	for filePath, templateName := range files {
 		fullPath := filepath.Join(g.ProjectDir, filePath)
 
-		// Prepare template data
 		data := map[string]interface{}{
 			"ProjectName":        g.ProjectName,
-			"ProjectDescription": "A CLI application built with Go and Cobra",
+			"ProjectDescription": "A CLI application with clean architecture",
 			"ModuleName":         g.ProjectName,
 			"GoVersion":          "1.21",
-			"Author":             "Meyank Singh",
-			"License":            "MIT",
-			"Year":               fmt.Sprintf("%d", time.Now().Year()),
-		}
-
-		// Special handling for command files
-		if filepath.Base(filePath) == "command1.go" {
-			data["CommandName"] = "command1"
-		} else if filepath.Base(filePath) == "command2.go" {
-			data["CommandName"] = "command2"
 		}
 
 		dir := filepath.Dir(fullPath)

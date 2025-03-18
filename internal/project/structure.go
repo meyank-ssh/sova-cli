@@ -39,7 +39,7 @@ func APIProjectStructure(projectName string) *ProjectStructure {
 			"internal/models/models.go":         "api/models.tpl",
 			"internal/server/server.go":         "api/server.tpl",
 			"routes/routes.go":                  "api/routes.tpl",
-			"internal/service/init.go":          "api/service-init.tpl",
+			"internal/service/service.go":       "api/service-init.tpl",
 			"internal/service/postgres.go":      "api/postgres.tpl",
 			"internal/service/redis.go":         "api/redis.tpl",
 			"internal/service/rabbitmq.go":      "api/rabbitmq.tpl",

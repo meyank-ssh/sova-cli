@@ -2,11 +2,13 @@ package project
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/go-sova/sova-cli/internal/templates"
+	"github.com/go-sova/sova-cli/pkg/questions"
 	"github.com/go-sova/sova-cli/pkg/utils"
+	"github.com/go-sova/sova-cli/templates"
 )
 
 type ProjectCreator struct {
@@ -15,8 +17,8 @@ type ProjectCreator struct {
 	fileGenerator  *templates.FileGenerator
 }
 
-func NewProjectCreator(templateDir string) *ProjectCreator {
-	loader := templates.NewTemplateLoader(templateDir)
+func NewProjectCreator() *ProjectCreator {
+	loader := templates.NewTemplateLoader()
 	return &ProjectCreator{
 		logger:         utils.NewLoggerWithPrefix(utils.Info, "ProjectCreator"),
 		templateLoader: loader,
@@ -71,27 +73,6 @@ func (c *ProjectCreator) CreateProject(projectName, projectDir, templateName str
 
 	// Loop through files and handle template category subdirectories
 	for filePath, templateName := range files {
-		// If the template doesn't have a path separator, check the appropriate category directory
-		if filepath.Base(templateName) == templateName {
-			// For templates like "go-mod.tpl", look in the category directory first
-			categoryTemplate := filepath.Join(templateName, templateName)
-			c.logger.Debug("Looking for template in category directory: %s", categoryTemplate)
-
-			// Try to find this template in the appropriate category subdirectory
-			if templateName == "default" {
-				categoryTemplate = filepath.Join("default", templateName)
-			} else if templateName == "cli" {
-				categoryTemplate = filepath.Join("cli", templateName)
-			} else if templateName == "api" {
-				categoryTemplate = filepath.Join("api", templateName)
-
-			// Check if category template exists
-			templatePath := filepath.Join(c.templateLoader.GetTemplateDir(), categoryTemplate)
-			if utils.FileExists(templatePath) {
-				templateName = categoryTemplate
-			}
-		}
-
 		c.logger.Debug("Generating file: %s from template: %s", filePath, templateName)
 		if err := c.fileGenerator.GenerateFile(templateName, filePath, projectData); err != nil {
 			return fmt.Errorf("failed to generate file: %w", err)
@@ -103,7 +84,6 @@ func (c *ProjectCreator) CreateProject(projectName, projectDir, templateName str
 }
 
 func (c *ProjectCreator) getProjectData(projectName, projectDescription string) (*ProjectData, error) {
-	// TODO: Get project data from user or default values
 	return &ProjectData{
 		ProjectName:        projectName,
 		ProjectDescription: projectDescription,
@@ -130,4 +110,32 @@ func (c *ProjectCreator) GetTemplateDescription(templateName string) (string, er
 	default:
 		return "", fmt.Errorf("unknown template: %s", templateName)
 	}
+}
+
+func CreateProject(projectName, projectDir string, answers *questions.ProjectAnswers) error {
+	structure, err := GetProjectStructure(answers.ProjectType, projectName)
+	if err != nil {
+		return fmt.Errorf("failed to get project structure: %v", err)
+	}
+
+	dirs, files := structure.GetAbsolutePaths(projectDir)
+
+	for _, dir := range dirs {
+		if err := utils.CreateDirIfNotExists(dir); err != nil {
+			return fmt.Errorf("failed to create directory %s: %v", dir, err)
+		}
+	}
+
+	for path, template := range files {
+		dir := filepath.Dir(path)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create directory %s: %v", dir, err)
+		}
+
+		if err := utils.CopyFile(template, path); err != nil {
+			return fmt.Errorf("failed to copy file %s to %s: %v", template, path, err)
+		}
+	}
+
+	return nil
 }

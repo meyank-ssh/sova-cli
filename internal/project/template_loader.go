@@ -3,19 +3,20 @@ package project
 import (
 	"fmt"
 
-	"github.com/go-sova/sova-cli/internal/templates"
 	"github.com/go-sova/sova-cli/pkg/utils"
+	"github.com/go-sova/sova-cli/templates"
 )
 
 type TemplateManager struct {
-	templateLoader *templates.TemplateLoader
 	logger         *utils.Logger
+	templateLoader *templates.TemplateLoader
 }
 
-func NewTemplateManager(templateDir string) *TemplateManager {
+func NewTemplateManager() *TemplateManager {
+	loader := templates.NewTemplateLoader()
 	return &TemplateManager{
-		templateLoader: templates.NewTemplateLoader(templateDir),
 		logger:         utils.NewLoggerWithPrefix(utils.Info, "TemplateManager"),
+		templateLoader: loader,
 	}
 }
 

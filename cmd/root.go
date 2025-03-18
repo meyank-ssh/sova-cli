@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
-	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/go-sova/sova-cli/templates"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,6 +33,8 @@ Use 'sova init' to create a new project with your desired settings.`,
 	},
 }
 
+var templateFS fs.FS
+
 func Execute() error {
 	return rootCmd.Execute()
 }
@@ -47,6 +50,9 @@ func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+
+	// Initialize template filesystem
+	templateFS = templates.GetTemplateFS()
 }
 
 func initConfig() {
@@ -86,61 +92,12 @@ func PrintError(format string, a ...interface{}) {
 	color.Red(format, a...)
 }
 
-func GetTemplatesDir() string {
-	execPath, err := os.Executable()
+// GetTemplate returns the contents of a template file
+func GetTemplate(category, name string) (string, error) {
+	templatePath := templates.GetTemplatePath(category, name)
+	content, err := fs.ReadFile(templateFS, templatePath)
 	if err != nil {
-		return findTemplatesInWorkingDir()
+		return "", fmt.Errorf("failed to read template %s: %w", templatePath, err)
 	}
-
-	execDir := filepath.Dir(execPath)
-	templateDirs := []string{
-		filepath.Join(execDir, "templates"),
-		filepath.Join(execDir, "..", "templates"),
-		filepath.Join(execDir, "..", "..", "templates"),
-	}
-
-	for _, dir := range templateDirs {
-		if isValidTemplateDir(dir) {
-			return dir
-		}
-	}
-
-	return findTemplatesInWorkingDir()
-}
-
-func findTemplatesInWorkingDir() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "templates"
-	}
-
-	templateDirs := []string{
-		filepath.Join(wd, "templates"),
-		filepath.Join(wd, "..", "templates"),
-		filepath.Join(wd, "..", "..", "templates"),
-	}
-
-	for _, dir := range templateDirs {
-		if isValidTemplateDir(dir) {
-			return dir
-		}
-	}
-
-	return "templates"
-}
-
-func isValidTemplateDir(dir string) bool {
-	if _, err := os.Stat(dir); err != nil {
-		return false
-	}
-
-	requiredDirs := []string{"api", "cli"}
-	for _, subdir := range requiredDirs {
-		subdirPath := filepath.Join(dir, subdir)
-		if _, err := os.Stat(subdirPath); err != nil {
-			return false
-		}
-	}
-
-	return true
+	return string(content), nil
 }

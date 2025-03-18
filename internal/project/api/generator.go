@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
-	"github.com/go-sova/sova-cli/internal/templates"
 	"github.com/go-sova/sova-cli/pkg/questions"
 	"github.com/go-sova/sova-cli/pkg/utils"
+	"github.com/go-sova/sova-cli/templates"
 )
 
 type APIProjectGenerator struct {
@@ -21,44 +20,7 @@ type APIProjectGenerator struct {
 }
 
 func NewAPIProjectGenerator(projectName, projectDir string, answers *questions.ProjectAnswers) *APIProjectGenerator {
-	// Try multiple locations for the templates
-	templateDirs := []string{
-		"templates",                                  // Current directory
-		filepath.Join("..", "templates"),             // One level up
-		filepath.Join("..", "..", "templates"),       // Two levels up
-		filepath.Join("..", "..", "..", "templates"), // Three levels up
-	}
-
-	// If running as an executable, also try relative to the executable
-	execPath, err := os.Executable()
-	if err == nil {
-		execDir := filepath.Dir(execPath)
-		templateDirs = append(templateDirs,
-			filepath.Join(execDir, "templates"),
-			filepath.Join(execDir, "..", "templates"),
-			filepath.Join(execDir, "..", "..", "templates"),
-			filepath.Join(execDir, "..", "..", "..", "templates"),
-		)
-	}
-
-	// Try to find an existing template directory
-	var templateDir string
-	for _, dir := range templateDirs {
-		if _, err := os.Stat(dir); err == nil {
-			// Verify that it contains the expected subdirectories
-			if _, err := os.Stat(filepath.Join(dir, "web")); err == nil {
-				templateDir = dir
-				break
-			}
-		}
-	}
-
-	// If no template directory found, use the default one
-	if templateDir == "" {
-		templateDir = "templates"
-	}
-
-	loader := templates.NewTemplateLoader(templateDir)
+	loader := templates.NewTemplateLoader()
 	return &APIProjectGenerator{
 		ProjectName:    projectName,
 		ProjectDir:     projectDir,
@@ -77,26 +39,31 @@ func (g *APIProjectGenerator) SetLogger(logger *utils.Logger) {
 
 func (g *APIProjectGenerator) Generate() (map[string]string, []string, error) {
 	dirs := []string{
-		"internal/handlers",
-		"internal/middleware",
-		"internal/models",
+		"cmd",
 		"internal/server",
 		"internal/service",
-		"routes",
+		"internal/handlers",
+		"internal/middleware",
+		"internal/routes",
 	}
 
-	// Map of file paths to template names
 	fileTemplates := map[string]string{
-		"routes/routes.go":          "api/routes.tpl",
-		"internal/handlers/ping.go": "api/handlers.tpl",
-		"internal/server/server.go": "api/server.tpl",
-		"cmd/main.go":               "api/main.tpl",
-		".env":                      "api/env.tpl",
-		"docker-compose.yml":        "api/docker-compose.tpl",
-		"go.mod":                    "api/go-mod.tpl",
+		"cmd/main.go":                   "api/main.tpl",
+		"internal/server/server.go":     "api/server.tpl",
+		"internal/routes/routes.go":     "api/routes.tpl",
+		"internal/service/service.go":   "api/service-init.tpl",
+		"internal/handlers/handlers.go": "api/handlers.tpl",
+		"internal/middleware/auth.go":   "api/middleware.tpl",
+		".env":                          "api/env.tpl",
+		"docker-compose.yml":            "api/docker-compose.tpl",
+		"Dockerfile":                    "api/dockerfile.tpl",
+		"go.mod":                        "api/go-mod.tpl",
 	}
 
-	// Add conditional files based on answers
+	if g.Answers.UseZap {
+		fileTemplates["internal/middleware/logging.go"] = "api/logging.tpl"
+	}
+
 	if g.Answers.UsePostgres {
 		fileTemplates["internal/service/postgres.go"] = "api/postgres.tpl"
 	}
@@ -109,33 +76,27 @@ func (g *APIProjectGenerator) Generate() (map[string]string, []string, error) {
 		fileTemplates["internal/service/rabbitmq.go"] = "api/rabbitmq.tpl"
 	}
 
-	if g.Answers.UseZap {
-		fileTemplates["internal/middleware/logging.go"] = "api/logging.tpl"
+	files := make(map[string]string)
+	for filePath, templateName := range fileTemplates {
+		files[filePath] = templateName
 	}
 
-	// Add service initialization file
-	fileTemplates["internal/service/init.go"] = "api/service-init.tpl"
-
-	return fileTemplates, dirs, nil
+	return files, dirs, nil
 }
 
 func (g *APIProjectGenerator) WriteFiles(files map[string]string) error {
 	for filePath, templateName := range files {
 		fullPath := filepath.Join(g.ProjectDir, filePath)
 
-		// Prepare template data
 		data := map[string]interface{}{
 			"ProjectName":        g.ProjectName,
-			"ProjectDescription": "A Go API project created with Sova CLI",
+			"ProjectDescription": "A Go API with clean architecture",
 			"ModuleName":         g.ProjectName,
 			"GoVersion":          "1.21",
-			"Author":             "Meyank Singh",
-			"License":            "MIT",
-			"Year":               fmt.Sprintf("%d", time.Now().Year()),
-			"UseZap":             g.Answers.UseZap,
 			"UsePostgres":        g.Answers.UsePostgres,
 			"UseRedis":           g.Answers.UseRedis,
 			"UseRabbitMQ":        g.Answers.UseRabbitMQ,
+			"UseZap":             g.Answers.UseZap,
 		}
 
 		dir := filepath.Dir(fullPath)
