@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/go-sova/sova-cli/master/scripts/ins
 
 **Windows** (Command Prompt):
 ```cmd
-curl -fsSL -o install.bat https://raw.githubusercontent.com/go-sova/sova-cli/scripts/install.bat && install.bat
+curl -fsSL -o install.bat https://raw.githubusercontent.com/go-sova/sova-cli/master/scripts/install.bat && install.bat
 ```
 
 **Using Go**:
