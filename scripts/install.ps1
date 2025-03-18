@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 
 # Define variables
-$repoOwner = "meyanksingh"
+$repoOwner = "go-sova"
 $repoName = "sova-cli"
 $cliName = "sova"
 $arch = "amd64"
