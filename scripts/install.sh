@@ -1,26 +1,29 @@
 #!/bin/bash
 
-set -e  
+set -e  # Stop script on error
 
-OS_TYPE=$(uname -s)
+OS_TYPE=$(uname -s 2>/dev/null || echo "Windows")  
 ARCH="amd64"
 
 case "$OS_TYPE" in
     Linux*) OS="linux";;
     Darwin*) OS="darwin";;
     CYGWIN*|MINGW*|MSYS*) OS="windows";;
+    Windows) OS="windows";;
     *) echo "Unsupported OS: $OS_TYPE"; exit 1;;
 esac
 
 REPO_OWNER="go-sova"
 REPO_NAME="sova-cli"
 CLI_NAME="sova"
-INSTALL_DIR="/usr/local/bin"
 
 if [ "$OS" == "windows" ]; then
-    INSTALL_DIR="$HOME/.local/bin"  
-    SCRIPT_EXT=".ps1"  
+    echo "Detected Windows: Using PowerShell for installation."
+    powershell -NoProfile -ExecutionPolicy Bypass -File "$0"
+    exit 0
 fi
+
+INSTALL_DIR="/usr/local/bin"
 
 echo "Detected OS: $OS"
 echo "Fetching latest release of $CLI_NAME..."
@@ -36,12 +39,6 @@ echo "Latest release found: $LATEST_RELEASE"
 
 ASSET_NAME="${CLI_NAME}_${OS}_${ARCH}.tar.gz"
 DOWNLOAD_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$LATEST_RELEASE/$ASSET_NAME"
-
-if [ "$OS" == "windows" ]; then
-    echo "Windows detected. Running PowerShell install script..."
-    powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/main/install.ps1' -OutFile 'install.ps1'; Start-Process -Wait -FilePath 'powershell.exe' -ArgumentList '-ExecutionPolicy Bypass -File install.ps1'"
-    exit 0
-fi
 
 echo "Downloading $CLI_NAME from $DOWNLOAD_URL..."
 curl -fsSL -o "$ASSET_NAME" "$DOWNLOAD_URL"
