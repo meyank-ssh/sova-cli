@@ -75,17 +75,29 @@ Get-ChildItem -Path $installDir -Recurse | ForEach-Object {
     Write-Host "- $($_.FullName)"
 }
 
-# Find and rename the executable
+# Find and rename the executable - specifically looking for sova_windows_amd64.exe
 Write-Host "`nLocating and renaming executable..." -ForegroundColor Cyan
-$exeFiles = Get-ChildItem -Path $installDir -Filter "*.exe" -Recurse
-if ($exeFiles) {
-    $exeFile = $exeFiles[0]  # Take the first exe file found
+$targetExe = "sova_windows_amd64.exe"
+$exeFile = Get-ChildItem -Path $installDir -Filter $targetExe | Select-Object -First 1
+
+if ($exeFile) {
     Write-Host "Found executable: $($exeFile.FullName)"
     $targetPath = Join-Path $installDir "sova.exe"
     Write-Host "Renaming to: $targetPath"
+    
+    # Remove existing sova.exe if it exists
+    if (Test-Path $targetPath) {
+        Remove-Item $targetPath -Force
+    }
+    
     Move-Item -Path $exeFile.FullName -Destination $targetPath -Force
+    
+    # Clean up any ._ prefixed files
+    Get-ChildItem -Path $installDir -Filter "._*" | ForEach-Object {
+        Remove-Item $_.FullName -Force
+    }
 } else {
-    Write-Host "Error: No executable found in the extracted files" -ForegroundColor Red
+    Write-Host "Error: Could not find $targetExe in the extracted files" -ForegroundColor Red
     exit 1
 }
 
