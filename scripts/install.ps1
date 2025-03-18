@@ -1,71 +1,65 @@
-#!/bin/bash
+# Set error handling
+$ErrorActionPreference = "Stop"
 
-set -e  # Stop script on error
+# Define variables
+$repoOwner = "go-sova"
+$repoName = "sova-cli"
+$cliName = "sova"
+$arch = "amd64"
+$installDir = "$env:LOCALAPPDATA\$cliName"
 
-OS_TYPE=$(uname -s 2>/dev/null || echo "Windows")  
-ARCH="amd64"
+# Ensure the install directory exists
+if (!(Test-Path -Path $installDir)) {
+    New-Item -ItemType Directory -Path $installDir -Force | Out-Null
+}
 
-case "$OS_TYPE" in
-    Linux*) OS="linux";;
-    Darwin*) OS="darwin";;
-    CYGWIN*|MINGW*|MSYS*) OS="windows";;
-    Windows) OS="windows";;
-    *) echo "Unsupported OS: $OS_TYPE"; exit 1;;
-esac
+# Fetch the latest release tag from GitHub API
+Write-Host "Fetching latest release of $cliName..."
+$latestRelease = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repoOwner/$repoName/releases/latest").tag_name
 
-REPO_OWNER="go-sova"
-REPO_NAME="sova-cli"
-CLI_NAME="sova"
-
-if [ "$OS" == "windows" ]; then
-    echo "Detected Windows: Using PowerShell for installation."
-    powershell -NoProfile -ExecutionPolicy Bypass -File "$0"
-    exit 0
-fi
-
-INSTALL_DIR="/usr/local/bin"
-
-echo "Detected OS: $OS"
-echo "Fetching latest release of $CLI_NAME..."
-
-LATEST_RELEASE=$(curl -fsSL "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-
-if [ -z "$LATEST_RELEASE" ]; then
-    echo "Error: Failed to get the latest release version."
+if (!$latestRelease) {
+    Write-Host "Error: Failed to retrieve latest release." -ForegroundColor Red
     exit 1
-fi
+}
 
-echo "Latest release found: $LATEST_RELEASE"
+Write-Host "Latest release found: $latestRelease"
 
-ASSET_NAME="${CLI_NAME}_${OS}_${ARCH}.tar.gz"
-DOWNLOAD_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$LATEST_RELEASE/$ASSET_NAME"
+# Construct download URL
+$assetName = "${cliName}_windows_${arch}.zip"
+$downloadUrl = "https://github.com/$repoOwner/$repoName/releases/download/$latestRelease/$assetName"
+$zipFile = "$env:TEMP\$assetName"
 
-echo "Downloading $CLI_NAME from $DOWNLOAD_URL..."
-curl -fsSL -o "$ASSET_NAME" "$DOWNLOAD_URL"
+# Download the CLI archive
+Write-Host "Downloading $cliName..."
+Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile
 
-if [ ! -f "$ASSET_NAME" ]; then
-    echo "Error: Download failed."
+if (!(Test-Path -Path $zipFile)) {
+    Write-Host "Error: Download failed." -ForegroundColor Red
     exit 1
-fi
+}
 
-echo "Extracting files..."
-tar -xzf "$ASSET_NAME"
+# Extract the ZIP file
+Write-Host "Extracting files..."
+Expand-Archive -Path $zipFile -DestinationPath $installDir -Force
 
-EXTRACTED_BINARY="${CLI_NAME}_${OS}_${ARCH}" 
+# Locate the extracted binary
+$binaryPath = "$installDir\$cliName.exe"
 
-if [ ! -f "$EXTRACTED_BINARY" ]; then
-    echo "Error: Extracted binary not found."
-    rm -f "$ASSET_NAME"
+if (!(Test-Path -Path $binaryPath)) {
+    Write-Host "Error: Extracted binary not found." -ForegroundColor Red
     exit 1
-fi
+}
 
-mv "$EXTRACTED_BINARY" "$CLI_NAME"
+# Add the install directory to PATH if not already present
+$path = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
+if ($installDir -notin $path) {
+    Write-Host "Adding $installDir to PATH..."
+    [System.Environment]::SetEnvironmentVariable("Path", "$path;$installDir", [System.EnvironmentVariableTarget]::User)
+}
 
-echo "Installing $CLI_NAME to $INSTALL_DIR..."
-chmod +x "$CLI_NAME"
-sudo mv "$CLI_NAME" "$INSTALL_DIR/$CLI_NAME"
+# Clean up temporary files
+Remove-Item -Path $zipFile -Force
 
-rm -f "$ASSET_NAME"
-
-echo "Installation completed successfully."
-echo "Run '$CLI_NAME --help' to verify the installation."
+Write-Host "`nInstallation completed successfully." -ForegroundColor Green
+Write-Host "Restart your terminal or run 'refreshenv' if using Chocolatey."
+Write-Host "Run '$cliName --help' to verify the installation."
