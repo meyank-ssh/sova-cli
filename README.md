@@ -16,7 +16,8 @@ curl -fsSL https://raw.githubusercontent.com/meyanksingh/go-sova/master/scripts/
 
 **Windows** (PowerShell Admin):
 ```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/meyanksingh/go-sova/master/scripts/install.sh" -OutFile "install.sh"; bash install.sh
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/meyanksingh/sova-cli/meyank/InstallFix/scripts/install.sh" -OutFile "install.sh"
+wsl bash install.sh
 ```
 
 **Using Go**:
