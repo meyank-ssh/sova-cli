@@ -75,164 +75,390 @@ Example:
 		dirs := []string{
 			"cmd",
 			"internal",
-			"pkg",
-			"docs",
-			"scripts",
 			"test",
+			"routes",
 		}
 
 		// Add API specific directories and files if needed
 		apiFiles := make(map[string]string)
 		if answers.ProjectType == "API" {
-			dirs = append(dirs, "api")
+			dirs = append(dirs,
+				"internal/handlers",
+				"internal/middleware",
+				"internal/models",
+				"internal/server",
+				"internal/service",
+			)
 
-			// Add feature-specific directories and files
-			if answers.UseZap {
-				dirs = append(dirs, "internal/logger")
-				apiFiles["internal/logger/logger.go"] = `package logger
-
-import (
-	"go.uber.org/zap"
-)
-
-var log *zap.Logger
-
-// Initialize sets up the logger
-func Initialize() error {
-	var err error
-	log, err = zap.NewProduction()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// Get returns the global logger instance
-func Get() *zap.Logger {
-	return log
-}
-`
-			}
-
-			if answers.UseRabbitMQ {
-				dirs = append(dirs, "internal/broker")
-				apiFiles["internal/broker/rabbitmq.go"] = `package broker
+			// Add routes setup in root level routes directory
+			apiFiles["routes/routes.go"] = `package routes
 
 import (
-	amqp "github.com/rabbitmq/amqp091-go"
+	"` + projectName + `/internal/handlers"
+	` + func() string {
+				if answers.UseZap {
+					return `"` + projectName + `/internal/middleware"`
+				}
+				return ""
+			}() + `
+	"github.com/gin-gonic/gin"
 )
 
-// RabbitMQ holds the connection and channel
-type RabbitMQ struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-}
-
-// NewRabbitMQ creates a new RabbitMQ connection
-func NewRabbitMQ(url string) (*RabbitMQ, error) {
-	conn, err := amqp.Dial(url)
-	if err != nil {
-		return nil, err
+// SetupRoutes configures all the routes for the application
+func SetupRoutes(router *gin.Engine) {
+	` + func() string {
+				if answers.UseZap {
+					return "// Add logging middleware\n\trouter.Use(middleware.LoggingMiddleware())\n"
+				}
+				return ""
+			}() + `
+	// API routes
+	api := router.Group("/api")
+	{
+		api.GET("/ping", handlers.PingHandler)
 	}
-
-	ch, err := conn.Channel()
-	if err != nil {
-		return nil, err
-	}
-
-	return &RabbitMQ{
-		conn:    conn,
-		channel: ch,
-	}, nil
-}
-
-// Close closes the connection and channel
-func (r *RabbitMQ) Close() error {
-	if err := r.channel.Close(); err != nil {
-		return err
-	}
-	return r.conn.Close()
 }
 `
-			}
 
-			if answers.UseRedis {
-				dirs = append(dirs, "internal/cache")
-				apiFiles["internal/cache/redis.go"] = `package cache
-
-import (
-	"context"
-
-	"github.com/redis/go-redis/v9"
-)
-
-// Redis holds the Redis client
-type Redis struct {
-	client *redis.Client
-}
-
-// NewRedis creates a new Redis connection
-func NewRedis(addr string) *Redis {
-	client := redis.NewClient(&redis.Options{
-		Addr: addr,
-	})
-
-	return &Redis{
-		client: client,
-	}
-}
-
-// Get retrieves a value from Redis
-func (r *Redis) Get(ctx context.Context, key string) (string, error) {
-	return r.client.Get(ctx, key).Result()
-}
-
-// Set stores a value in Redis
-func (r *Redis) Set(ctx context.Context, key string, value interface{}) error {
-	return r.client.Set(ctx, key, value, 0).Err()
-}
-`
-			}
-
+			// Add service files for connections
 			if answers.UsePostgres {
-				dirs = append(dirs, "internal/database")
-				apiFiles["internal/database/postgres.go"] = `package database
+				apiFiles["internal/service/postgres.go"] = `package service
 
 import (
 	"database/sql"
+	"os"
 	_ "github.com/lib/pq"
 )
 
-// Postgres holds the database connection
-type Postgres struct {
-	db *sql.DB
-}
+var DB *sql.DB
 
-// NewPostgres creates a new Postgres connection
-func NewPostgres(connStr string) (*Postgres, error) {
-	db, err := sql.Open("postgres", connStr)
+func InitPostgres() error {
+	var err error
+	DB, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
+	
+	if err := DB.Ping(); err != nil {
+		return err
 	}
-
-	return &Postgres{
-		db: db,
-	}, nil
+	
+	return nil
 }
 
-// Close closes the database connection
-func (p *Postgres) Close() error {
-	return p.db.Close()
+func ClosePostgres() {
+	if DB != nil {
+		DB.Close()
+	}
+}`
+			}
+
+			if answers.UseRedis {
+				apiFiles["internal/service/redis.go"] = `package service
+
+import (
+	"github.com/redis/go-redis/v9"
+	"os"
+)
+
+var RedisClient *redis.Client
+
+func InitRedis() error {
+	RedisClient = redis.NewClient(&redis.Options{
+		Addr: os.Getenv("REDIS_URL"),
+	})
+	
+	return nil
+}
+
+func CloseRedis() {
+	if RedisClient != nil {
+		RedisClient.Close()
+	}
+}`
+			}
+
+			if answers.UseRabbitMQ {
+				apiFiles["internal/service/rabbitmq.go"] = `package service
+
+import (
+	"os"
+	amqp "github.com/rabbitmq/amqp091-go"
+)
+
+var RabbitMQ *amqp.Connection
+
+func InitRabbitMQ() error {
+	var err error
+	RabbitMQ, err = amqp.Dial(os.Getenv("RABBITMQ_URL"))
+	if err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+func CloseRabbitMQ() {
+	if RabbitMQ != nil {
+		RabbitMQ.Close()
+	}
+}`
+			}
+
+			// Add service initializer
+			apiFiles["internal/service/init.go"] = `package service
+
+func InitServices() error {` + func() string {
+				var inits []string
+				if answers.UsePostgres {
+					inits = append(inits, `
+	// Initialize PostgreSQL
+	if err := InitPostgres(); err != nil {
+		return err
+	}`)
+				}
+				if answers.UseRedis {
+					inits = append(inits, `
+	// Initialize Redis
+	if err := InitRedis(); err != nil {
+		return err
+	}`)
+				}
+				if answers.UseRabbitMQ {
+					inits = append(inits, `
+	// Initialize RabbitMQ
+	if err := InitRabbitMQ(); err != nil {
+		return err
+	}`)
+				}
+				return strings.Join(inits, "\n") + `
+	
+	return nil`
+			}() + `
+}
+
+func CloseServices() {` + func() string {
+				var closers []string
+				if answers.UsePostgres {
+					closers = append(closers, "\tClosePostgres()")
+				}
+				if answers.UseRedis {
+					closers = append(closers, "\tCloseRedis()")
+				}
+				if answers.UseRabbitMQ {
+					closers = append(closers, "\tCloseRabbitMQ()")
+				}
+				return "\n\t" + strings.Join(closers, "\n\t")
+			}() + `
+}`
+
+			// Add handlers
+			apiFiles["internal/handlers/ping.go"] = `package handlers
+
+import (
+	"github.com/gin-gonic/gin"
+)
+
+func PingHandler(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "pong",
+	})
+}
+`
+
+			if answers.UseZap {
+				apiFiles["internal/middleware/logging.go"] = `package middleware
+
+import (
+	"time"
+	"go.uber.org/zap"
+	"github.com/gin-gonic/gin"
+)
+
+var logger *zap.Logger
+
+func init() {
+	var err error
+	logger, err = zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func LoggingMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		path := c.Request.URL.Path
+		method := c.Request.Method
+
+		c.Next()
+
+		latency := time.Since(start)
+		status := c.Writer.Status()
+
+		logger.Info("request completed",
+			zap.String("path", path),
+			zap.String("method", method),
+			zap.Int("status", status),
+			zap.Duration("latency", latency),
+		)
+	}
 }
 `
 			}
 
-			// Add handlers and middleware directories
-			dirs = append(dirs, "internal/handlers", "internal/middleware")
+			// Update server setup with root level routes import
+			apiFiles["internal/server/server.go"] = `package server
+
+import (
+	"fmt"
+	"os"
+	"` + projectName + `/routes"
+	"github.com/gin-gonic/gin"
+)
+
+type Server struct {
+	router *gin.Engine
+}
+
+func NewServer() *Server {
+	return &Server{
+		router: gin.Default(),
+	}
+}
+
+func (s *Server) Start() error {
+	// Setup routes
+	routes.SetupRoutes(s.router)
+
+	// Get port from environment
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Start server
+	return s.router.Run(fmt.Sprintf(":%s", port))
+}
+`
+
+			// Update main.go with cleaner initialization
+			apiFiles["cmd/main.go"] = `package main
+
+import (
+	"log"
+	"` + projectName + `/internal/server"
+	"` + projectName + `/internal/service"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found")
+	}
+
+	// Initialize all services
+	if err := service.InitServices(); err != nil {
+		log.Fatalf("Failed to initialize services: %v", err)
+	}
+	defer service.CloseServices()
+
+	// Create and start server
+	srv := server.NewServer()
+	if err := srv.Start(); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+}
+`
+
+			// Add .env file with conditional variables
+			apiFiles[".env"] = `# Server Configuration
+PORT=8080
+
+` + func() string {
+				var envVars []string
+				if answers.UsePostgres {
+					envVars = append(envVars, `# Database Configuration
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/`+projectName+`?sslmode=disable`)
+				}
+				if answers.UseRedis {
+					envVars = append(envVars, `# Redis Configuration
+REDIS_URL=localhost:6379`)
+				}
+				if answers.UseRabbitMQ {
+					envVars = append(envVars, `# RabbitMQ Configuration
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/`)
+				}
+				return strings.Join(envVars, "\n\n")
+			}()
+
+			// Add docker-compose.yml with conditional services
+			apiFiles["docker-compose.yml"] = `version: '3'
+services:` + func() string {
+				var services []string
+				if answers.UsePostgres {
+					services = append(services, `
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=`+projectName)
+				}
+				if answers.UseRedis {
+					services = append(services, `
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"`)
+				}
+				if answers.UseRabbitMQ {
+					services = append(services, `
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"`)
+				}
+				return strings.Join(services, "\n")
+			}()
+
+			// Update go.mod for API with conditional dependencies
+			baseAPIFiles := map[string]string{
+				"go.mod": fmt.Sprintf(`module %s
+
+go 1.21
+
+require (
+	github.com/gin-gonic/gin v1.9.1
+	github.com/joho/godotenv v1.5.1
+	`+func() string {
+					var deps []string
+					if answers.UseZap {
+						deps = append(deps, "go.uber.org/zap v1.27.0")
+					}
+					if answers.UsePostgres {
+						deps = append(deps, "github.com/lib/pq v1.10.9")
+					}
+					if answers.UseRedis {
+						deps = append(deps, "github.com/redis/go-redis/v9 v9.5.1")
+					}
+					if answers.UseRabbitMQ {
+						deps = append(deps, "github.com/rabbitmq/amqp091-go v1.9.0")
+					}
+					return strings.Join(deps, "\n\t")
+				}()+`
+)
+`, projectName),
+			}
+
+			// Merge base API files with conditional files
+			for k, v := range baseAPIFiles {
+				apiFiles[k] = v
+			}
 		}
 
 		// Create directories
@@ -246,153 +472,17 @@ func (p *Postgres) Close() error {
 			fmt.Printf("Created directory: %s\n", dirPath)
 		}
 
-		// Base files for all projects
-		files := map[string]string{
-			"go.mod": fmt.Sprintf(`module %s
-
-go 1.21
-
-require (
-`, projectName),
-			"README.md": fmt.Sprintf(`# %s
-
-This project was generated using Sova CLI.
-
-## Project Type
-%s
-
-## Features
-`, projectName, answers.ProjectType),
-		}
-
-		// Add main.go based on project type
-		if answers.ProjectType == "CLI" {
-			files["main.go"] = `package main
-
-import (
-	"fmt"
-	"os"
-
-	"github.com/spf13/cobra"
-)
-
-func main() {
-	rootCmd := &cobra.Command{
-		Use:   "` + projectName + `",
-		Short: "A brief description of your CLI application",
-	}
-
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
-`
-			files["go.mod"] += `	github.com/spf13/cobra v1.9.1
-)
-`
-			files["README.md"] += `- Command Line Interface
-- Built with Cobra
-`
-		} else {
-			// API project
-			mainImports := []string{
-				`	"log"`,
-				`	"net/http"`,
-				`	"github.com/gin-gonic/gin"`,
-			}
-
-			mainInit := []string{}
-			if answers.UseZap {
-				mainImports = append(mainImports, `	"`+projectName+`/internal/logger"`)
-				mainInit = append(mainInit, `	if err := logger.Initialize(); err != nil {
-		log.Fatal("Failed to initialize logger:", err)
-	}`)
-			}
-
-			if answers.UseRabbitMQ {
-				mainImports = append(mainImports, `	"`+projectName+`/internal/broker"`)
-				mainInit = append(mainInit, `	rmq, err := broker.NewRabbitMQ("amqp://guest:guest@localhost:5672/")
-	if err != nil {
-		log.Fatal("Failed to connect to RabbitMQ:", err)
-	}
-	defer rmq.Close()`)
-			}
-
-			if answers.UseRedis {
-				mainImports = append(mainImports, `	"`+projectName+`/internal/cache"`)
-				mainInit = append(mainInit, `	redis := cache.NewRedis("localhost:6379")`)
-			}
-
-			if answers.UsePostgres {
-				mainImports = append(mainImports, `	"`+projectName+`/internal/database"`)
-				mainInit = append(mainInit, `	db, err := database.NewPostgres("postgres://postgres:postgres@localhost:5432/`+projectName+`?sslmode=disable")
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
-	}
-	defer db.Close()`)
-			}
-
-			files["main.go"] = `package main
-
-import (
-` + strings.Join(mainImports, "\n") + `
-)
-
-func main() {
-` + strings.Join(mainInit, "\n") + `
-
-	r := gin.Default()
-	
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
-	if err := r.Run(":8080"); err != nil {
-		log.Fatal(err)
-	}
-}
-`
-			// Add dependencies based on selected features
-			deps := []string{
-				"github.com/gin-gonic/gin v1.9.1",
-			}
-
-			if answers.UseZap {
-				deps = append(deps, "go.uber.org/zap v1.27.0")
-				files["README.md"] += "- Zap logging\n"
-			}
-
-			if answers.UseRabbitMQ {
-				deps = append(deps, "github.com/rabbitmq/amqp091-go v1.9.0")
-				files["README.md"] += "- RabbitMQ integration\n"
-			}
-
-			if answers.UseRedis {
-				deps = append(deps, "github.com/redis/go-redis/v9 v9.5.1")
-				files["README.md"] += "- Redis caching\n"
-			}
-
-			if answers.UsePostgres {
-				deps = append(deps, "github.com/lib/pq v1.10.9")
-				files["README.md"] += "- PostgreSQL database\n"
-			}
-
-			files["go.mod"] += "	" + strings.Join(deps, "\n\t") + "\n)"
-		}
-
-		// Merge API-specific files with base files
-		for filename, content := range apiFiles {
-			files[filename] = content
-		}
-
 		// Create all files
-		for filename, content := range files {
+		for filename, content := range apiFiles {
 			filePath := filepath.Join(projectDir, filename)
-			err := ioutil.WriteFile(filePath, []byte(content), 0644)
-			if err != nil {
+			// Ensure the directory exists
+			dir := filepath.Dir(filePath)
+			if err := os.MkdirAll(dir, 0755); err != nil {
+				PrintError("Failed to create directory %s: %v", dir, err)
+				os.Exit(1)
+			}
+			// Write the file
+			if err := ioutil.WriteFile(filePath, []byte(content), 0644); err != nil {
 				PrintError("Failed to create file %s: %v", filename, err)
 				os.Exit(1)
 			}
@@ -404,17 +494,20 @@ func main() {
 			PrintInfo("\nTo start your API server:")
 			PrintInfo("cd %s", projectName)
 			PrintInfo("go mod tidy")
-			PrintInfo("go run main.go")
-			PrintInfo("\nThen visit http://localhost:8080/ping")
+			PrintInfo("go run cmd/main.go")
+			PrintInfo("\nThen visit http://localhost:8080/api/ping")
 
 			if answers.UsePostgres {
-				PrintInfo("\nMake sure PostgreSQL is running and create a database named '%s'", projectName)
+				PrintInfo("\nMake sure PostgreSQL is running:")
+				PrintInfo("docker-compose up postgres -d")
 			}
 			if answers.UseRedis {
-				PrintInfo("\nMake sure Redis server is running on localhost:6379")
+				PrintInfo("\nMake sure Redis is running:")
+				PrintInfo("docker-compose up redis -d")
 			}
 			if answers.UseRabbitMQ {
-				PrintInfo("\nMake sure RabbitMQ server is running on localhost:5672")
+				PrintInfo("\nMake sure RabbitMQ is running:")
+				PrintInfo("docker-compose up rabbitmq -d")
 			}
 		}
 	},

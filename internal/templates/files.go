@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/meyanksingh/go-sova/internal/utils"
+	"github.com/go-sova/sova-cli/pkg/utils"
 )
 
 // FileGenerator generates files from templates

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-sova/sova-cli/internal/templates"
-	"github.com/go-sova/sova-cli/internal/utils"
+	"github.com/go-sova/sova-cli/pkg/utils"
 )
 
 // ProjectCreator creates new projects
