@@ -13,16 +13,14 @@ case "$OS_TYPE" in
     *) echo "Unsupported OS: $OS_TYPE"; exit 1;;
 esac
 
+if [ "$OS" == "windows" ]; then
+    echo "Detected Windows: Please use the Windows installer (install.bat or install.ps1)"
+    exit 1
+fi
+
 REPO_OWNER="go-sova"
 REPO_NAME="sova-cli"
 CLI_NAME="sova"
-
-if [ "$OS" == "windows" ]; then
-    echo "Detected Windows: Using PowerShell for installation."
-    powershell -NoProfile -ExecutionPolicy Bypass -File "$0"
-    exit 0
-fi
-
 INSTALL_DIR="/usr/local/bin"
 
 echo "Detected OS: $OS"

@@ -18,7 +18,6 @@ if %errorlevel% neq 0 (
 :: Run the PowerShell script with Execution Policy Bypass
 powershell -NoProfile -ExecutionPolicy Bypass -File %PS_SCRIPT%
 
-:: Optionally delete the PowerShell script after execution
 del %PS_SCRIPT%
 
 endlocal

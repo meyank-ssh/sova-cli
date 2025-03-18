@@ -11,13 +11,12 @@ A modern CLI tool for scaffolding Go projects with best practices. Generate prod
 
 **Linux/macOS**:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/meyanksingh/go-sova/master/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/go-sova/sova-cli/master/scripts/install.sh | bash
 ```
 
-**Windows** (PowerShell Admin):
-```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/meyanksingh/sova-cli/meyank/InstallFix/scripts/install.sh" -OutFile "install.sh"
-wsl bash install.sh
+**Windows** (Command Prompt):
+```cmd
+curl -fsSL -o install.bat https://raw.githubusercontent.com/go-sova/sova-cli/scripts/install.bat && install.bat
 ```
 
 **Using Go**:
