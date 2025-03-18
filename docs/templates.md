@@ -1,12 +1,12 @@
-# Templates Guide
+# Project Templates
 
-Sova CLI comes with two built-in templates to help you kickstart your projects.
+This document describes the available project templates and their structure in Sova CLI.
 
-## Available Templates
+## API Template
 
-### 1. API Template
-Complete structure for API applications.
+The API template creates a Go web service with a clean architecture structure.
 
+### Directory Structure
 ```
 📦 project/
 ├── cmd/           # Application entry point
@@ -23,37 +23,108 @@ Complete structure for API applications.
 └── scripts/      # Build scripts
 ```
 
-### 2. CLI Template
-Structure for command-line applications.
+### Features
+- Clean architecture structure
+- HTTP server using Gin framework
+- Environment configuration with .env
+- Docker support with docker-compose
+- Optional integrations:
+  - PostgreSQL database
+  - Redis cache
+  - RabbitMQ message queue
+  - Zap logging middleware
 
+### Docker Services
+When enabled, the following services are available:
+- PostgreSQL (port: 5432)
+- Redis (port: 6379)
+- RabbitMQ (ports: 5672, 15672)
+
+### Configuration
+- Environment variables in `.env`
+- Docker volumes for data persistence
+- Customizable service configurations
+
+## CLI Template
+
+The CLI template creates a command-line application using Cobra.
+
+### Directory Structure
 ```
 📦 project/
 ├── cmd/
-│   ├── root/     # Root command
-│   └── commands/ # Subcommands
+│   ├── root/             # Root command
+│   └── version/          # Version command
 ├── internal/
-│   ├── commands/ # Command implementations
-│   ├── config/   # Configuration
-│   └── utils/    # Utility functions
-└── docs/         # Documentation
+│   ├── commands/         # Command implementations
+│   ├── config/          # Configuration
+│   └── utils/           # Utility functions
+├── pkg/                 # Public packages
+├── docs/               # Documentation
+├── scripts/            # Build and deployment scripts
+└── tests/              # Integration tests
 ```
 
-## Features
-
-### API Template Features
-- Complete API project structure
-- Built-in middleware (logging, CORS, etc.)
-- Service layer with PostgreSQL, Redis, and RabbitMQ support
-- Environment configuration
-- Docker support
-- API documentation structure
-
-### CLI Template Features
+### Features
 - Cobra-based CLI structure
-- Command organization
-- Configuration management
-- Utility functions
+- Command management
+- Configuration handling
+- Utility functions for CLI operations
+
+## Common Features
+
+Both templates include:
+- Go modules support
+- `.gitignore` with appropriate exclusions
 - Documentation structure
+- Test setup
+- Build scripts
+
+## Recent Updates
+
+1. Fixed Import Paths
+   - Moved routes to `internal/routes`
+   - Updated import paths in templates
+   - Fixed module name references
+
+2. Docker Compose
+   - Removed obsolete version attribute
+   - Added volume configurations
+   - Improved service definitions
+
+3. Project Structure
+   - Reorganized internal packages
+   - Added consistent directory structure
+   - Improved template organization
+
+4. Git Configuration
+   - Added comprehensive `.gitignore` templates
+   - Separate configurations for API and CLI projects
+   - Docker-specific ignores for API projects
+
+## Usage
+
+Create a new API project:
+```bash
+sova-cli create api my-project
+```
+
+Create a new CLI project:
+```bash
+sova-cli create cli my-project
+```
+
+## Configuration Options
+
+### API Projects
+- `UsePostgres`: Enable PostgreSQL support
+- `UseRedis`: Enable Redis support
+- `UseRabbitMQ`: Enable RabbitMQ support
+- `UseZap`: Enable Zap logging middleware
+
+### CLI Projects
+- Basic CLI structure with extensible commands
+- Configuration management with Viper
 
 ## Creating Custom Templates
 

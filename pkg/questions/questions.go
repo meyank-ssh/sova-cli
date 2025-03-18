@@ -93,7 +93,6 @@ func AskProjectQuestions(projectType string) (*ProjectAnswers, error) {
 			return nil, err
 		}
 	case "cli":
-		fmt.Printf("Debug: Processing CLI project type\n")
 
 		prompt := &survey.Confirm{
 			Message: "Would you like to use zap as a logger?",
@@ -108,7 +107,6 @@ func AskProjectQuestions(projectType string) (*ProjectAnswers, error) {
 		answers.UseRedis = false
 		answers.UseRabbitMQ = false
 	default:
-		fmt.Printf("Debug: Unsupported project type: '%s'\n", projectType)
 		return nil, fmt.Errorf("unsupported project type: %s", projectType)
 	}
 

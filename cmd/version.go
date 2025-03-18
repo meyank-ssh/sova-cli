@@ -1,18 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"runtime"
 
+	"github.com/go-sova/sova-cli/internal/version"
 	"github.com/spf13/cobra"
-)
-
-var (
-	Version   = "0.1.0"
-	BuildDate = "unknown"
-	GitCommit = "unknown"
-	GoVersion = runtime.Version()
-	Platform  = fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
 )
 
 var versionCmd = &cobra.Command{
@@ -20,17 +13,26 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number of Sova CLI",
 	Long:  `Display the version, build, and runtime information for Sova CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Sova CLI v%s\n", Version)
+		info := version.GetInfo()
 
+		if cmd.Flag("json").Value.String() == "true" {
+			jsonOutput, _ := json.MarshalIndent(info, "", "  ")
+			fmt.Println(string(jsonOutput))
+			return
+		}
+
+		fmt.Printf("Sova CLI v%s\n", info.Version)
 		if cmd.Flag("verbose").Value.String() == "true" {
-			fmt.Printf("Build Date: %s\n", BuildDate)
-			fmt.Printf("Git Commit: %s\n", GitCommit)
-			fmt.Printf("Go Version: %s\n", GoVersion)
-			fmt.Printf("Platform: %s\n", Platform)
+			fmt.Printf("Build Date: %s\n", info.BuildDate)
+			fmt.Printf("Git Commit: %s\n", info.GitCommit)
+			fmt.Printf("Go Version: %s\n", info.GoVersion)
+			fmt.Printf("Platform: %s\n", info.Platform)
 		}
 	},
 }
 
 func init() {
+	versionCmd.Flags().BoolP("verbose", "v", false, "print detailed version information")
+	versionCmd.Flags().Bool("json", false, "print version information as JSON")
 	rootCmd.AddCommand(versionCmd)
 }
