@@ -19,17 +19,17 @@ BUILD_FLAGS=(
 BUILD_FLAGS_STR=$(IFS=' '; echo "${BUILD_FLAGS[*]}")
 
 # Build for different platforms
-GOOS=linux GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME} ./main.go
-tar -czf $BUILD_DIR/${BINARY_NAME}_linux_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}
-rm $BUILD_DIR/${BINARY_NAME}
+GOOS=linux GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}_linux_amd64 ./main.go
+tar -czf $BUILD_DIR/${BINARY_NAME}_linux_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}_linux_amd64
+rm $BUILD_DIR/${BINARY_NAME}_linux_amd64
 
-GOOS=darwin GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME} ./main.go
-tar -czf $BUILD_DIR/${BINARY_NAME}_darwin_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}
-rm $BUILD_DIR/${BINARY_NAME}
+GOOS=darwin GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}_darwin_amd64 ./main.go
+tar -czf $BUILD_DIR/${BINARY_NAME}_darwin_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}_darwin_amd64
+rm $BUILD_DIR/${BINARY_NAME}_darwin_amd64
 
-GOOS=windows GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}.exe ./main.go
-tar -czf $BUILD_DIR/${BINARY_NAME}_windows_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}.exe
-rm $BUILD_DIR/${BINARY_NAME}.exe
+GOOS=windows GOARCH=amd64 go build -ldflags "${BUILD_FLAGS_STR}" -o $BUILD_DIR/${BINARY_NAME}_windows_amd64.exe ./main.go
+tar -czf $BUILD_DIR/${BINARY_NAME}_windows_amd64.tar.gz -C $BUILD_DIR ${BINARY_NAME}_windows_amd64.exe
+rm $BUILD_DIR/${BINARY_NAME}_windows_amd64.exe
 
 # Create checksums
 cd $BUILD_DIR
