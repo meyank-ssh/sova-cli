@@ -18,4 +18,4 @@ func SetupRoutes(router *gin.Engine) {
 		api.GET("/ping", handlers.PingHandler)
 		api.GET("/health", handlers.HealthHandler)
 	}
-} 
+}

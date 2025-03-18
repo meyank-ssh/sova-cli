@@ -1,6 +1,4 @@
-version: '3'
 services:
-  
   {{if .UsePostgres}}postgres:
     image: postgres:latest
     ports:

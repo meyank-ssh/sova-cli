@@ -58,6 +58,7 @@ func (g *APIProjectGenerator) Generate() (map[string]string, []string, error) {
 		"docker-compose.yml":            "api/docker-compose.tpl",
 		"Dockerfile":                    "api/dockerfile.tpl",
 		"go.mod":                        "api/go-mod.tpl",
+		".gitignore":                    "api/gitignore.tpl",
 	}
 
 	if g.Answers.UseZap {

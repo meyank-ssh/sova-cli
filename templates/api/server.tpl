@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"os"
-	"{{.ModuleName}}/routes"
+	"{{.ModuleName}}/internal/routes"
 	"github.com/gin-gonic/gin"
 )
 

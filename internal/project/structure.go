@@ -29,7 +29,7 @@ func APIProjectStructure(projectName string) *ProjectStructure {
 			"internal/models",
 			"internal/server",
 			"internal/service",
-			"routes",
+			"internal/routes",
 		},
 		Files: map[string]string{
 			"cmd/main.go":                       "api/main.tpl",
@@ -38,7 +38,7 @@ func APIProjectStructure(projectName string) *ProjectStructure {
 			"internal/middleware/middleware.go": "api/middleware.tpl",
 			"internal/models/models.go":         "api/models.tpl",
 			"internal/server/server.go":         "api/server.tpl",
-			"routes/routes.go":                  "api/routes.tpl",
+			"internal/routes/routes.go":         "api/routes.tpl",
 			"internal/service/service.go":       "api/service-init.tpl",
 			"internal/service/postgres.go":      "api/postgres.tpl",
 			"internal/service/redis.go":         "api/redis.tpl",
