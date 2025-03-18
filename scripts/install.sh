@@ -49,7 +49,7 @@ fi
 echo "Extracting files..."
 tar -xzf "$ASSET_NAME"
 
-EXTRACTED_BINARY="${CLI_NAME}_${OS}_${ARCH}" 
+EXTRACTED_BINARY="${CLI_NAME}" 
 
 if [ ! -f "$EXTRACTED_BINARY" ]; then
     echo "Error: Extracted binary not found."
