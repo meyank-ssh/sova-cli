@@ -17,13 +17,16 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "sova",
-	Short: "Sova CLI - A tool for generating project boilerplate",
-	Long: `Sova CLI is a powerful tool for initializing and generating 
-project boilerplate code. It helps you quickly set up new projects
+	Short: "Sova CLI - A tool for initializing projects",
+	Long: `Sova CLI is a powerful tool for initializing projects 
 with predefined templates and structures.
 
-Use 'sova init' to create a new project or 'sova generate' to 
-generate specific components for your existing project.`,
+Available Commands:
+  init        Initialize a new project with your desired settings
+  version     Display version information
+  help        Help about any command
+
+Use 'sova init' to create a new project with your desired settings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
@@ -40,6 +43,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose output")
 
 	rootCmd.Flags().BoolP("version", "V", false, "display version information")
+
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
 }

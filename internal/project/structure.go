@@ -5,15 +5,13 @@ import (
 	"path/filepath"
 )
 
-// ProjectStructure defines the structure of a project
 type ProjectStructure struct {
 	Name        string
 	Description string
 	Directories []string
-	Files       map[string]string // Map of file path to template name
+	Files       map[string]string
 }
 
-// DefaultProjectStructure returns the default project structure
 func DefaultProjectStructure(projectName string) *ProjectStructure {
 	return &ProjectStructure{
 		Name:        projectName,
@@ -34,12 +32,10 @@ func DefaultProjectStructure(projectName string) *ProjectStructure {
 	}
 }
 
-// GoWebProjectStructure returns a Go web project structure
 func GoWebProjectStructure(projectName string) *ProjectStructure {
 	structure := DefaultProjectStructure(projectName)
 	structure.Description = "A Go web project created with Sova CLI"
 
-	// Add additional directories
 	structure.Directories = append(structure.Directories,
 		"api",
 		"internal/handlers",
@@ -53,7 +49,6 @@ func GoWebProjectStructure(projectName string) *ProjectStructure {
 		"web/static/img",
 	)
 
-	// Add additional files
 	additionalFiles := map[string]string{
 		"cmd/server/main.go":                "go-web-main.tpl",
 		"internal/config/config.go":         "go-web-config.tpl",
@@ -76,19 +71,16 @@ func GoWebProjectStructure(projectName string) *ProjectStructure {
 	return structure
 }
 
-// CLIProjectStructure returns a CLI project structure
 func CLIProjectStructure(projectName string) *ProjectStructure {
 	structure := DefaultProjectStructure(projectName)
 	structure.Description = "A CLI project created with Sova CLI"
 
-	// Add additional directories
 	structure.Directories = append(structure.Directories,
 		"cmd/root",
 		"internal/commands",
 		"internal/config",
 	)
 
-	// Add additional files
 	additionalFiles := map[string]string{
 		"cmd/root/root.go":          "cli-root.tpl",
 		"cmd/version/version.go":    "cli-version.tpl",
@@ -104,17 +96,14 @@ func CLIProjectStructure(projectName string) *ProjectStructure {
 	return structure
 }
 
-// LibraryProjectStructure returns a library project structure
 func LibraryProjectStructure(projectName string) *ProjectStructure {
 	structure := DefaultProjectStructure(projectName)
 	structure.Description = "A Go library created with Sova CLI"
 
-	// Add additional directories
 	structure.Directories = append(structure.Directories,
 		"examples",
 	)
 
-	// Add additional files
 	additionalFiles := map[string]string{
 		"pkg/library.go":      "lib-main.tpl",
 		"examples/example.go": "lib-example.tpl",
@@ -128,7 +117,6 @@ func LibraryProjectStructure(projectName string) *ProjectStructure {
 	return structure
 }
 
-// GetProjectStructure returns a project structure based on the template name
 func GetProjectStructure(templateName, projectName string) (*ProjectStructure, error) {
 	switch templateName {
 	case "default":
@@ -144,17 +132,14 @@ func GetProjectStructure(templateName, projectName string) (*ProjectStructure, e
 	}
 }
 
-// GetAbsolutePaths returns the absolute paths for all directories and files
 func (s *ProjectStructure) GetAbsolutePaths(baseDir string) ([]string, map[string]string) {
 	dirs := make([]string, len(s.Directories))
 	files := make(map[string]string)
 
-	// Get absolute paths for directories
 	for i, dir := range s.Directories {
 		dirs[i] = filepath.Join(baseDir, dir)
 	}
 
-	// Get absolute paths for files
 	for path, template := range s.Files {
 		files[filepath.Join(baseDir, path)] = template
 	}

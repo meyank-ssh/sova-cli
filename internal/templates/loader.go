@@ -9,13 +9,11 @@ import (
 	"github.com/go-sova/sova-cli/pkg/utils"
 )
 
-// TemplateLoader loads templates from the filesystem
 type TemplateLoader struct {
 	templateDir string
 	logger      *utils.Logger
 }
 
-// NewTemplateLoader creates a new template loader
 func NewTemplateLoader(templateDir string) *TemplateLoader {
 	return &TemplateLoader{
 		templateDir: templateDir,
@@ -23,17 +21,14 @@ func NewTemplateLoader(templateDir string) *TemplateLoader {
 	}
 }
 
-// SetLogger sets the logger for the template loader
 func (l *TemplateLoader) SetLogger(logger *utils.Logger) {
 	l.logger = logger
 }
 
-// GetTemplateDir returns the template directory
 func (l *TemplateLoader) GetTemplateDir() string {
 	return l.templateDir
 }
 
-// LoadTemplate loads a template from the filesystem
 func (l *TemplateLoader) LoadTemplate(name string) (*template.Template, error) {
 	templatePath := filepath.Join(l.templateDir, name)
 	l.logger.Debug("Loading template: %s", templatePath)
@@ -45,7 +40,6 @@ func (l *TemplateLoader) LoadTemplate(name string) (*template.Template, error) {
 	return template.ParseFiles(templatePath)
 }
 
-// LoadTemplateWithFuncs loads a template from the filesystem with custom functions
 func (l *TemplateLoader) LoadTemplateWithFuncs(name string, funcs template.FuncMap) (*template.Template, error) {
 	templatePath := filepath.Join(l.templateDir, name)
 	l.logger.Debug("Loading template with funcs: %s", templatePath)
@@ -57,7 +51,6 @@ func (l *TemplateLoader) LoadTemplateWithFuncs(name string, funcs template.FuncM
 	return template.New(filepath.Base(name)).Funcs(funcs).ParseFiles(templatePath)
 }
 
-// ListTemplates lists all templates in the template directory
 func (l *TemplateLoader) ListTemplates() ([]string, error) {
 	var templates []string
 	
@@ -86,7 +79,6 @@ func (l *TemplateLoader) ListTemplates() ([]string, error) {
 	return templates, err
 }
 
-// ListTemplateCategories lists all template categories (subdirectories)
 func (l *TemplateLoader) ListTemplateCategories() ([]string, error) {
 	var categories []string
 	
@@ -110,7 +102,6 @@ func (l *TemplateLoader) ListTemplateCategories() ([]string, error) {
 	return categories, nil
 }
 
-// GetTemplatesInCategory lists all templates in a specific category
 func (l *TemplateLoader) GetTemplatesInCategory(category string) ([]string, error) {
 	var templates []string
 	

@@ -12,7 +12,7 @@ defaults:
   template: web
   license: MIT
   goVersion: "1.21"
-  author: "Your Name"
+  author: "Meyank Singh"
 
 # Template settings
 templates:
@@ -75,7 +75,7 @@ SOVA_TEMPLATE_DIR=~/.sova/templates
 # Project defaults
 SOVA_DEFAULT_TEMPLATE=web
 SOVA_DEFAULT_LICENSE=MIT
-SOVA_DEFAULT_AUTHOR="Your Name"
+SOVA_DEFAULT_AUTHOR="Meyank Singh"
 
 # Development
 SOVA_DEBUG=true

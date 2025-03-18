@@ -5,7 +5,6 @@ go 1.23.5
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/fatih/color v1.18.0
-	github.com/meyanksingh/go-sova v1.0.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.0
 )
