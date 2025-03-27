@@ -38,7 +38,7 @@ sova init my-project
 
 ## 📦 Features
 
-- Multiple project templates (Web, CLI, Library)
+- Multiple project templates (Web, CLI)
 - Standardized project structure
 - Customizable templates
 - Interactive prompts
